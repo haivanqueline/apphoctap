@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:learn_megnagmet/controller/controller.dart';
 import 'package:learn_megnagmet/home/home_screen.dart';
+import 'package:learn_megnagmet/lecturer/lecturerlist.dart';
 import '../My_cources/ongoing_completed_main_screen.dart';
 import '../chate/chate_screen.dart';
 import '../models/profile.dart';
 import '../models/user.dart';
 import '../profile/my_profile.dart';
 import '../utils/slider_page_data_model.dart';
-import '../profile/edit_screen.dart';
 class HomeMainScreen extends StatefulWidget {
   const HomeMainScreen({Key? key}) : super(key: key);
 
@@ -78,19 +78,19 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
                           children: const [
                             Image(
                                 image: AssetImage("assets/bottomhomeblue.png"),
-                                height: 24,
-                                width: 24),
-                            SizedBox(height: 8.79),
+                                height: 20,
+                                width: 20),
+                            SizedBox(height: 8),
                             Image(
                                 image: AssetImage("assets/line.png"),
                                 height: 1.75,
-                                width: 24),
+                                width: 20),
                           ],
                         ),
                         icon: const Image(
                           image: AssetImage("assets/bottomhomeblack.png"),
-                          height: 24,
-                          width: 24,
+                          height: 20,
+                          width: 20,
                         ),
                         label: ''),
                     BottomNavigationBarItem(
@@ -98,19 +98,19 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
                           children: const [
                             Image(
                                 image: AssetImage("assets/bottombookblue.png"),
-                                height: 24,
-                                width: 24),
-                            SizedBox(height: 8.79),
+                                height: 20,
+                                width: 20),
+                            SizedBox(height: 8),
                             Image(
                                 image: AssetImage("assets/line.png"),
                                 height: 1.75,
-                                width: 24),
+                                width: 20),
                           ],
                         ),
                         icon: const Image(
                             image: AssetImage("assets/bottombookblack.png"),
-                            height: 24,
-                            width: 24),
+                            height: 20,
+                            width: 20),
                         label: ''),
                     BottomNavigationBarItem(
                         activeIcon: Column(
@@ -118,40 +118,62 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
                             Image(
                                 image:
                                     AssetImage("assets/bottommessegeblue.png"),
-                                height: 24,
-                                width: 24),
-                            SizedBox(height: 8.79),
+                                height: 20,
+                                width: 20),
+                            SizedBox(height: 8),
                             Image(
                                 image: AssetImage("assets/line.png"),
                                 height: 1.75,
-                                width: 24),
+                                width: 20),
                           ],
                         ),
                         icon: const Image(
                             image: AssetImage("assets/bottommessegeblack.png"),
-                            height: 24,
-                            width: 24),
+                            height: 20,
+                            width: 20),
                         label: ''),
+                        
                     BottomNavigationBarItem(
                         activeIcon: Column(
                           children: const [
                             Image(
                                 image:
                                     AssetImage("assets/bottomprofileblue.png"),
-                                height: 24,
-                                width: 24),
-                            SizedBox(height: 8.79),
+                                height: 20,
+                                width: 20),
+                            SizedBox(height: 8),
                             Image(
                                 image: AssetImage("assets/line.png"),
                                 height: 1.75,
-                                width: 24),
+                                width: 20),
                           ],
                         ),
                         icon: const Image(
                             image: AssetImage("assets/bottomprofileblack.png"),
-                            height: 24,
-                            width: 24),
+                            height: 20,
+                            width: 20),
                         label: ''),
+                        BottomNavigationBarItem(
+                          activeIcon: Column(
+                            children: const [
+                              Image(
+                                  image: AssetImage("assets/lecturerwhite.png"), // Biểu tượng khi được chọn
+                                  height: 20,
+                                  width: 20),
+                              SizedBox(height: 8),
+                              Image(
+                                  image: AssetImage("assets/line.png"), // Đường gạch bên dưới
+                                  height: 1.75,
+                                  width: 20),
+                            ],
+                          ),
+                          icon: const Image(
+                              image: AssetImage("assets/lecturerblack.png"), // Biểu tượng khi không được chọn
+                              height: 20,
+                              width: 20),
+                          label: '',
+                        ),
+
                   ]),
             )),
       ),
@@ -176,6 +198,8 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
         } else {
           return const Center(child: Text("No profile data available"));
         }
+        case 4:
+          return LecturerList(); // Màn hình giảng viên
       default:
         return const Center(
           child: Text("inavalid"),

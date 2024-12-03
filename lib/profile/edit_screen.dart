@@ -158,13 +158,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
       height: 60.h,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22.h),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0XFF23408F).withOpacity(0.14),
-            offset: const Offset(-4, 5),
-            blurRadius: 16,
-          ),
-        ],
         color: Colors.white,
       ),
       child: TextFormField(
@@ -183,7 +176,6 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         style: TextStyle(
           fontSize: 15.sp,
           color: Color(0XFF6E758A),
-          fontFamily: 'Gilroy',
           fontWeight: FontWeight.w700,
         ),
       ),

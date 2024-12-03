@@ -8,7 +8,7 @@ import '../models/profile.dart';
 import '../models/user.dart';
 import '../profile/my_profile.dart';
 import '../utils/slider_page_data_model.dart';
-import '../profile/edit_screen.dart';
+
 class HomeMainScreen extends StatefulWidget {
   const HomeMainScreen({Key? key}) : super(key: key);
 
@@ -168,7 +168,7 @@ class _HomeMainScreenState extends State<HomeMainScreen> {
         return const OngoingCompletedScreen();
       case 2:
         //return Center(child: Container(child: Text("3")));
-        return const ChateScreen();
+        return const UserListScreen();
       case 3:
         if (currentUser != null) {
           final profile = Profile.fromUser(currentUser!);

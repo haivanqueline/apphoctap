@@ -1,238 +1,300 @@
-// ignore_for_file: unnecessary_import
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-
-import '../controller/controller.dart';
-import '../models/chate_data.dart';
-import '../utils/screen_size.dart';
-import '../utils/slider_page_data_model.dart';
+import 'package:learn_megnagmet/utils/screen_size.dart';
+import '../models/user.dart';
+import '../providers/chat_provider.dart';
+import '../repository/user_repository.dart';
 import 'detail_chate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import '../providers/last_message_provider.dart';
 
-class ChateScreen extends StatefulWidget {
-  const ChateScreen({Key? key}) : super(key: key);
+class UserListScreen extends ConsumerStatefulWidget {
+  const UserListScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChateScreen> createState() => _ChateScreenState();
+  ConsumerState<UserListScreen> createState() => _UserListScreenState();
 }
 
-class _ChateScreenState extends State<ChateScreen> {
-  ChateScreenController chateScreenController =
-      Get.put(ChateScreenController());
-  List<Chate> chate = Utils.getChate();
+class _UserListScreenState extends ConsumerState<UserListScreen> {
+  late Future<List<User>> _users;
+  int? currentUserId;
+  final TextEditingController _searchController = TextEditingController();
+  List<User> filteredUsers = [];
+  bool isSearching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+    _users = ref.read(userRepositoryProvider).getUsers();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('current_user');
+    if (userJson != null) {
+      final user = User.fromJson(jsonDecode(userJson));
+      setState(() {
+        currentUserId = user.id;
+      });
+    }
+  }
+
+  void _searchUsers(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        isSearching = false;
+        _users = ref.read(userRepositoryProvider).getUsers();
+      });
+      return;
+    }
+
+    setState(() {
+      isSearching = true;
+    });
+
+    try {
+      final results = await ref.read(userRepositoryProvider).searchUsers(query);
+      setState(() {
+        filteredUsers = results;
+      });
+    } catch (e) {}
+  }
 
   @override
   Widget build(BuildContext context) {
     initializeScreenSize(context);
     return Scaffold(
-        floatingActionButton: FloatingActionButton(
-            onPressed: () {},
-            backgroundColor: const Color(0XFF23408F),
-            child:  Image(
-              image: AssetImage("assets/floatingaction.png"),
-              height: 24.h,
-              width: 24.w,
-            )),
-        body: GetBuilder<ChateScreenController>(
-          init: ChateScreenController(),
-          builder: (chateScreenController) => SafeArea(
-            child: Column(
-              children: [
-                SizedBox(height: 20.h),
-                search_text_field(),
-                SizedBox(height: 20),
-                Expanded(
-                  child: ListView(
-                    children: [
-                      SizedBox(
-                        height: 50.h,
-                        child: ListView.builder(
-
-                            shrinkWrap: true,
-                            scrollDirection: Axis.horizontal,
-                            itemCount: chate.length,
-                            itemBuilder: ((context, index) => Padding(
-                                  padding: EdgeInsets.only(
-                                      left: index == 0 ? 22.w : 10.w, right: 10.w),
-                                  child: Container(
-                                    height: 50.h,
-                                    width: 50.w,
-                                    decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                            image:
-                                                AssetImage(chate[index].photo!))),
-                                    child:  Padding(
-                                      padding:  EdgeInsets.only(
-                                          top: 36.h, left: 35.h),
-                                      child: Image(
-                                        image:
-                                            AssetImage("assets/notification.png"),
-                                        height: 10.h,
-                                        width: 10.w,
-                                      ),
-                                    ),
-                                  ),
-                                ))),
-                      ),
-                      SizedBox(height: 20.h),
-                      ListView.builder(
-                          physics: const NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          scrollDirection: Axis.vertical,
-                          itemCount: chate.length,
-                          itemBuilder: ((context, index) => GestureDetector(
-                            onTap: (){
-                              Get.to(DetailChate(detail: chate[index],));
-                            },
-                            child: Padding(
-                                  padding:  EdgeInsets.only(
-                                      top: 10.h, bottom: 10.h, left: 20.w, right: 20.w),
-                                  child: Container(
-                                      height: 70.h,
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(12.h),
-                                          boxShadow: [
-                                            BoxShadow(
-                                                color: const Color(0XFF23408F)
-                                                    .withOpacity(0.14),
-                                                offset: const Offset(-4, 5),
-                                                blurRadius: 16.h),
-                                          ],
-                                          color: Colors.white),
-                                      child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            //SizedBox(width: 10),
-
-                                            //const SizedBox(width: 10),
-                                            Row(
-                                              children: [
-                                                SizedBox(width: 10.w),
-                                                Container(
-                                                  height: 50.h,
-                                                  width: 50.w,
-                                                  decoration: BoxDecoration(
-                                                      image: DecorationImage(
-                                                          image: AssetImage(
-                                                              chate[index].photo!))),
-                                                  child:  Padding(
-                                                    padding: EdgeInsets.only(
-                                                        top: 36.h, left: 35.w),
-                                                    child: Image(
-                                                      image: const AssetImage(
-                                                          "assets/notification.png"),
-                                                      height: 10.h,
-                                                      width: 10.w,
-                                                    ),
-                                                  ),
-                                                ),
-                                                SizedBox(width: 15.w),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      chate[index].full_name!,
-                                                      style:  TextStyle(
-                                                          fontSize: 14.sp,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontFamily: 'Gilroy'),
-                                                    ),
-                                                     SizedBox(height: 2.h),
-                                                    Text(
-                                                      chate[index].message!,
-                                                      style:  TextStyle(
-                                                          fontSize: 12.sp,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          fontFamily: 'Gilroy',
-                                                          color: const Color(0XFF6E758A)),
-                                                    )
-                                                  ],
-                                                ),
-
-                                              ],
-                                            ),
-                                            Padding(
-                                              padding:  EdgeInsets.only(right: 10.w),
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                                children: [
-                                                  Text(chate[index].time!,
-                                                      style:  TextStyle(
-                                                          fontSize: 12.sp,
-                                                          fontWeight:
-                                                          FontWeight.w700,
-                                                          fontFamily: 'Gilroy')),
-                                                  SizedBox(height: 4.h),
-                                                  Container(
-                                                      height: 16.h,
-                                                      width: 16.w,
-                                                      decoration:
-                                                      const BoxDecoration(
-                                                          shape:
-                                                          BoxShape.circle,
-                                                          color: Color(
-                                                              0XFF23408F)),
-                                                      child: Center(
-                                                          child: Text(
-                                                              chate[index]
-                                                                  .messageCount!,
-                                                              style:  TextStyle(
-                                                                  fontSize: 9.sp,
-                                                                  fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                                  fontFamily:
-                                                                  'Gilroy',
-                                                                  color: Color(
-                                                                      0XFFFFFFFF)))))
-                                                ],
-                                              ),
-                                            ),
-                                          ])),
-                                ),
-                          ))),
-                    ],
-                  ),
-                )
-              ],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          'Message!!',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Gilroy',
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: const Color(0XFF23408F),
+        child: Image(
+          image: AssetImage("assets/floatingaction.png"),
+          height: 24.h,
+          width: 24.w,
+        ),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _searchUsers,
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm người dùng',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(22.r),
+                  borderSide: BorderSide(color: Color(0XFFDEDEDE)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(22.r),
+                  borderSide: BorderSide(color: Color(0XFF23408F)),
+                ),
+              ),
             ),
           ),
-        ));
+          Expanded(
+            child: isSearching ? _buildSearchResults() : _buildUserList(),
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget search_text_field() {
-    return Padding(
-      padding:  EdgeInsets.only(left: 20.w, right: 20.w),
-      child: Container(
-        height: 50,
-        child: TextFormField(
-            decoration: InputDecoration(
-          focusedBorder: OutlineInputBorder(
-              borderSide:  BorderSide(color: Color(0XFF23408F), width: 1.w),
-              borderRadius: BorderRadius.circular(22)),
-          hintText: 'Search',
-          hintStyle:  TextStyle(
-              color: Color(0XFF9B9B9B),
-              fontSize: 15.sp,
-              fontFamily: 'Gilroy',
-              fontWeight: FontWeight.w400),
-          prefixIcon: const Image(
-            image: AssetImage('assets/search.png'),
-            height: 24,
-            width: 24,
+  Widget _buildSearchResults() {
+    return ListView.builder(
+      itemCount: filteredUsers.length,
+      itemBuilder: (context, index) {
+        final user = filteredUsers[index];
+        if (user.id == currentUserId) return Container();
+        return UserListTile(user: user);
+      },
+    );
+  }
+
+  Widget _buildUserList() {
+    return FutureBuilder<List<User>>(
+      future: _users,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text('Đã xảy ra lỗi: ${snapshot.error}'));
+        }
+
+        final users = snapshot.data ?? [];
+        return ListView.builder(
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            final user = users[index];
+            if (user.id == currentUserId) return Container();
+            return UserListTile(user: user);
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+}
+
+class UserListTile extends ConsumerStatefulWidget {
+  final User user;
+
+  const UserListTile({Key? key, required this.user}) : super(key: key);
+
+  @override
+  ConsumerState<UserListTile> createState() => _UserListTileState();
+}
+
+class _UserListTileState extends ConsumerState<UserListTile> {
+  @override
+  void initState() {
+    super.initState();
+    ref.read(lastMessageProvider.notifier).loadLastMessage(widget.user);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lastMessages = ref.watch(lastMessageProvider);
+    final lastMessage = lastMessages[widget.user.id];
+
+    return GestureDetector(
+      onTap: () => _openChat(context),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+        child: Container(
+          height: 70.h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12.h),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0XFF23408F).withOpacity(0.14),
+                offset: const Offset(-4, 5),
+                blurRadius: 16.h,
+              ),
+            ],
           ),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(22.h),
-              borderSide: BorderSide(color: Color(0XFFDEDEDE), width: 1.h)),
-        )),
+          child: Row(
+            children: [
+              SizedBox(width: 10.w),
+              _buildAvatar(),
+              SizedBox(width: 15.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      widget.user.full_name,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Gilroy',
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    if (lastMessage != null) ...[
+                      Text(
+                        lastMessage.content,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: const Color(0XFF6E758A),
+                          fontWeight: FontWeight.w400,
+                          fontFamily: 'Gilroy',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        _formatTime(lastMessage.createdAt),
+                        style: TextStyle(
+                          fontSize: 10.sp,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        'Bắt đầu cuộc trò chuyện',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: const Color(0XFF6E758A),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 10.w),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    if (messageDate == today) {
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } else if (messageDate == today.subtract(Duration(days: 1))) {
+      return 'Hôm qua';
+    } else {
+      return '${dateTime.day}/${dateTime.month}';
+    }
+  }
+
+  Widget _buildAvatar() {
+    return Container(
+      height: 50.h,
+      width: 50.w,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        image: DecorationImage(
+          image: widget.user.photo.isNotEmpty
+              ? NetworkImage(widget.user.photo)
+              : const AssetImage("assets/default_avatar.png") as ImageProvider,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  void _openChat(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProviderScope(
+          child: ChatScreen(receiver: widget.user),
+        ),
       ),
     );
   }

@@ -239,23 +239,23 @@ class EmptyState extends ConsumerWidget {
     return Center(
       child: GestureDetector(
         onTap: () async {
-          try {
-            if (formkey.currentState!.validate()) {
-              await ref
-                  .read(loginProvider.notifier)
+          if (formkey.currentState!.validate()) {
+            try {
+              await ref.read(loginProvider.notifier)
                   .login(emailController.text, passwordController.text);
 
               // Kiểm tra trạng thái đăng nhập
               if (ref.read(loginProvider) == LoginStatus.success) {
-                PrefData.setLogin(true);
-                Get.to(const HomeMainScreen());
-              } else {
-                Get.snackbar(
-                    'Error', 'Login failed. Please check your credentials.');
+                await PrefData.setLogin(true);
+                Get.offAll(() => const HomeMainScreen());
               }
+            } catch (e) {
+              Get.snackbar(
+                'Error', 
+                e.toString(),
+                snackPosition: SnackPosition.BOTTOM,
+              );
             }
-          } catch (e) {
-            Get.snackbar('Error', 'An unexpected error occurred: $e');
           }
         },
         child: Container(

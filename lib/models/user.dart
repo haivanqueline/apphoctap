@@ -1,6 +1,7 @@
 class User {
+  final int id;
   final String code;
-  final int global_id;
+  final String global_id;
   final String full_name;
   final String username;
   final String email;
@@ -22,6 +23,7 @@ class User {
   final String status;
 
   User({
+    required this.id,
     this.username = '',
     required this.email,
     required this.password,
@@ -32,7 +34,7 @@ class User {
     required this.phone,
     required this.address,
     this.code = '',
-    this.global_id = 0,
+    this.global_id = '',
     this.description = '',
     this.ship_id = 0,
     this.email_verified_at = '',
@@ -45,8 +47,36 @@ class User {
     this.taxaddress = '',
   });
 
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'] ?? 0,
+      username: json['username'] ?? '',
+      email: json['email'] ?? '',
+      password: json['password'] ?? '',
+      ugroup_id: int.tryParse(json['ugroup_id'].toString()) ?? 0,
+      role: json['role'] ?? 'customer',
+      full_name: json['full_name'] ?? '',
+      status: json['status'] ?? 'active',
+      phone: json['phone'] ?? '',
+      address: json['address'] ?? '',
+      code: json['code'] ?? '',
+      global_id: json['global_id']?.toString() ?? '',
+      description: json['description'] ?? '',
+      ship_id: int.tryParse(json['ship_id'].toString()) ?? 0,
+      email_verified_at: json['email_verified_at'] ?? '',
+      photo: json['photo'] ?? '',
+      budget: int.tryParse(json['budget'].toString()) ?? 0,
+      totalpoint: int.tryParse(json['totalpoint'].toString()) ?? 0,
+      totalrevenue: int.tryParse(json['totalrevenue'].toString()) ?? 0,
+      taxcode: json['taxcode'] ?? '',
+      taxname: json['taxname'] ?? '',
+      taxaddress: json['taxaddress'] ?? '',
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'username': username,
       'email': email,
       'password': password,
@@ -69,31 +99,5 @@ class User {
       'taxname': taxname,
       'taxaddress': taxaddress,
     };
-  }
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      username: json['username'],
-      email: json['email'],
-      password: json['password'],
-      ugroup_id: json['ugroup_id'],
-      role: json['role'],
-      full_name: json['full_name'],
-      status: json['status'],
-      phone: json['phone'],
-      address: json['address'],
-      code: json['code'],
-      global_id: json['global_id'],
-      description: json['description'],
-      ship_id: json['ship_id'],
-      email_verified_at: json['email_verified_at'],
-      photo: json['photo'],
-      budget: json['budget'],
-      totalpoint: json['totalpoint'],
-      totalrevenue: json['totalrevenue'],
-      taxcode: json['taxcode'],
-      taxname: json['taxname'],
-      taxaddress: json['taxaddress'],
-    );
   }
 }

@@ -89,7 +89,9 @@ class _MyProfileState extends State<MyProfile> {
                 ),
                 SizedBox(height: 20.h),
                 Image(
-                  image: AssetImage(widget.profile_detail.photo),
+                  image: widget.profile_detail.photo.isNotEmpty
+                      ? NetworkImage(widget.profile_detail.photo)
+                      : AssetImage("assets/default_avatar.png") as ImageProvider,
                   height: 100.h,
                   width: 100.w,
                 ),

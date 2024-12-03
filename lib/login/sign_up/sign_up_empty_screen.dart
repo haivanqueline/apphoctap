@@ -252,32 +252,32 @@ class SignInEmptyScreen extends ConsumerWidget {
         color: const Color(0XFF23408F),
       ),
       child: TextButton(
-        onPressed: () {
+        onPressed: () async {
           if (formKey.currentState!.validate()) {
-            User user = User(
-              full_name: nameController.text,
-              email: emailController.text,
-              password: passwordController.text,
-              phone: phoneController.text,
-              address: addressController.text,
-            );
+            try {
+              User user = User(
+                id: 0, // API sẽ tự sinh id
+                full_name: nameController.text,
+                email: emailController.text,
+                password: passwordController.text,
+                phone: phoneController.text,
+                address: addressController.text,
+              );
 
-            // Gọi hàm đăng ký từ AuthStateNotifier
-            ref
-                .read(authStateNotifierProvider.notifier)
-                .registerUser(user)
-                .then((_) {
-              // Chuyển hướng đến trang chủ nếu đăng ký thành công
+              await ref.read(authStateNotifierProvider.notifier).registerUser(user);
+              Get.snackbar(
+                "Success", 
+                "Registration successful",
+                snackPosition: SnackPosition.BOTTOM,
+              );
               Get.offAll(() => const HomeMainScreen());
-            }).catchError((error) {
-              // Thông báo lỗi nếu có
-              Get.snackbar("Error", "Registration failed: $error",
-                  snackPosition: SnackPosition.BOTTOM);
-            });
-          } else {
-            // Thông báo lỗi nếu có trường không hợp lệ
-            Get.snackbar("Error", "Please fill in all fields correctly.",
-                snackPosition: SnackPosition.BOTTOM);
+            } catch (error) {
+              Get.snackbar(
+                "Error", 
+                error.toString(),
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            }
           }
         },
         child: Text("Sign Up",

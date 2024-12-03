@@ -18,11 +18,11 @@ class Profile {
   // Tạo phương thức từ JSON
   factory Profile.fromJson(Map<String, dynamic> json) {
     return Profile(
-      email: json['email'],
-      full_name: json['full_name'],
-      phone: json['phone'],
-      address: json['address'],
-      photo: json['avatar_url'],
+      email: json['email'] ?? '',
+      full_name: json['full_name'] ?? '',
+      phone: json['phone'] ?? '',
+      address: json['address'] ?? '',
+      photo: json['avatar_url'] ?? '',
     );
   }
 

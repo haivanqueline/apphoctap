@@ -97,7 +97,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 20.w),
                       child: Row(children: [
                         Image(
-                          image: AssetImage(currentUser?.photo ?? 'assets/default_avatar.png'),
+                          image: currentUser?.photo.isNotEmpty ?? false
+                              ? NetworkImage(currentUser?.photo ?? '')
+                              : AssetImage("assets/default_avatar.png") as ImageProvider,
                           height: 50.h,
                           width: 49.93.w,
                         ),

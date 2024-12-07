@@ -1,22 +1,37 @@
 import '../models/profile.dart';
 
-// final String base = 'http://127.0.0.1:8000/api/v1';
-// final String base = 'http://localhost:8000/api/v1';
 final String base = 'http://127.0.0.1:8000/api/v1';
-final String api_register =
-    base + "/register"; // Thay bằng API thật localhost:8000/api/v1/register
-final String api_updateprofile = base +
-    "/updateprofile"; // Thay bằng API thật localhost:8000/api/v1/register
-final String api_ge_product_list = base + "/getproductcat"; //
-final String api_login = base + "/login";
-final String api_send_message = base + "/messages/send";
-final String api_get_messages = base + "/messages";
-final String api_delete_message = base + "/messages";
-final String api_search_users = base + "/users/search";
-String token = ''; //s
+
+// Authentication & Profile
+final String api_register = '$base/register';
+final String api_login = '$base/login';
+final String api_updateprofile = '$base/updateprofile';
+
+// Messages
+final String api_send_message = '$base/messages/send';
+final String api_get_messages = '$base/messages';
+final String api_delete_message = '$base/delete'; // Cập nhật theo route mới
+final String api_search_users = '$base/users/search';
+
+// Products
+final String api_ge_product_list = '$base/getproductcat';
+
+// Learning/Courses
+final String api_get_courses = '$base/courses';
+final String api_assign_course = '$base/assign-course';
+final String api_upload_lesson = '$base/upload-lesson';
+final String api_get_lessons = '$base/lessons';
+final String api_get_lesson_detail = '$base/lesson';
+final String api_create_course = '$base/create-course';
+final String api_get_lesson_content = '$base/lesson-content';
+final String api_get_learning_progress = '$base/learning-progress';
+
+// Global Variables
+String token = '';
 Profile initialProfile = Profile(
     full_name: 'md',
     phone: '',
     address: '',
-    photo: '',
-    email: 'default@email.com');
+    photo: 'assets/default_avatar.png',
+    email: ''
+);

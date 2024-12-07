@@ -255,37 +255,83 @@ class SignInEmptyScreen extends ConsumerWidget {
         onPressed: () async {
           if (formKey.currentState!.validate()) {
             try {
+              // Hiển thị loading dialog
+              Get.dialog(
+                const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                barrierDismissible: false,
+              );
+
               User user = User(
-                id: 0, // API sẽ tự sinh id
+                id: 0,
                 full_name: nameController.text,
                 email: emailController.text,
                 password: passwordController.text,
                 phone: phoneController.text,
                 address: addressController.text,
+                photo: 'assets/default_avatar.png',
               );
 
-              await ref.read(authStateNotifierProvider.notifier).registerUser(user);
-              Get.snackbar(
-                "Success", 
-                "Registration successful",
-                snackPosition: SnackPosition.BOTTOM,
-              );
-              Get.offAll(() => const HomeMainScreen());
+              await ref
+                  .read(authStateNotifierProvider.notifier)
+                  .registerUser(user);
+
+              // Đợi một chút để đảm bảo dữ liệu được lưu
+              await Future.delayed(const Duration(seconds: 1));
+
+              // Kiểm tra lại trạng thái
+              final authState = ref.read(authStateNotifierProvider);
+              
+              // Đóng dialog loading
+              Get.back();
+
+              if (authState.status == RegisterStatus.success && authState.user != null) {
+                Get.snackbar(
+                  "Success",
+                  "Registration successful",
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+                
+                // Đợi snackbar hiển thị xong
+                await Future.delayed(const Duration(seconds: 1));
+                
+                // Chuyển màn hình với replacement để tránh quay lại
+                Get.offAll(
+                  () => const HomeMainScreen(),
+                  transition: Transition.fadeIn,
+                  duration: const Duration(milliseconds: 500),
+                );
+              } else {
+                Get.snackbar(
+                  "Error",
+                  "Registration failed. Please try again.",
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              }
             } catch (error) {
+              // Đóng dialog loading nếu có lỗi
+              if (Get.isDialogOpen ?? false) {
+                Get.back();
+              }
+              
               Get.snackbar(
-                "Error", 
+                "Error",
                 error.toString(),
                 snackPosition: SnackPosition.BOTTOM,
               );
             }
           }
         },
-        child: Text("Sign Up",
-            style: TextStyle(
-                color: Color(0xFFFFFFFF),
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Gilroy')),
+        child: Text(
+          "Sign Up",
+          style: TextStyle(
+            color: const Color(0xFFFFFFFF),
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Gilroy',
+          ),
+        ),
       ),
     );
   }

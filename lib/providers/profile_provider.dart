@@ -32,14 +32,14 @@ class ProfileState {
 class ProfileNotifier extends StateNotifier<ProfileState> {
   final ProfileRepository _repository;
 
-  ProfileNotifier(this._repository)
+  ProfileNotifier(this._repository, {Profile? initialProfile})
       : super(ProfileState(
-            profile: Profile(
-                email: initialProfile.email,
-                full_name: initialProfile.full_name,
-                phone: initialProfile.phone,
-                address: initialProfile.address,
-                photo: initialProfile.photo)));
+            profile: initialProfile ?? Profile(
+                email: '',
+                full_name: '',
+                phone: '',
+                address: '',
+                photo: 'assets/default_avatar.png')));
 
   void setInitialProfile() {
     state = ProfileState(

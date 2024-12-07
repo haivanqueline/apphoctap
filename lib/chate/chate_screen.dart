@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:learn_megnagmet/utils/screen_size.dart';
 import '../models/user.dart';
-import '../providers/chat_provider.dart';
 import '../repository/user_repository.dart';
 import 'detail_chate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,7 +27,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
   void initState() {
     super.initState();
     _loadCurrentUser();
-    _users = ref.read(userRepositoryProvider).getUsers();
+    _users = _loadUsersWithLastMessage();
   }
 
   Future<void> _loadCurrentUser() async {
@@ -42,11 +41,43 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
     }
   }
 
+  Future<List<User>> _loadUsersWithLastMessage() async {
+    try {
+      final users = await ref.read(userRepositoryProvider).getUsers();
+      final lastMessages = ref.read(lastMessageProvider);
+      
+      final usersWithMessages = <User>[];
+      final usersWithoutMessages = <User>[];
+      
+      for (var user in users) {
+        if (user.id == currentUserId) continue;
+        
+        final lastMessage = lastMessages[user.id];
+        if (lastMessage != null) {
+          usersWithMessages.add(user);
+        } else {
+          usersWithoutMessages.add(user);
+        }
+      }
+      
+      usersWithMessages.sort((a, b) {
+        final lastMessageA = lastMessages[a.id];
+        final lastMessageB = lastMessages[b.id];
+        return lastMessageB!.createdAt.compareTo(lastMessageA!.createdAt);
+      });
+      
+      return [...usersWithMessages, ...usersWithoutMessages];
+    } catch (e) {
+      print('Error loading users: $e');
+      return [];
+    }
+  }
+
   void _searchUsers(String query) async {
     if (query.isEmpty) {
       setState(() {
         isSearching = false;
-        _users = ref.read(userRepositoryProvider).getUsers();
+        _users = _loadUsersWithLastMessage();
       });
       return;
     }
@@ -57,10 +88,25 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
 
     try {
       final results = await ref.read(userRepositoryProvider).searchUsers(query);
+      final lastMessages = ref.read(lastMessageProvider);
+      
+      results.sort((a, b) {
+        final lastMessageA = lastMessages[a.id];
+        final lastMessageB = lastMessages[b.id];
+        
+        if (lastMessageA == null && lastMessageB == null) return 0;
+        if (lastMessageA == null) return 1;
+        if (lastMessageB == null) return -1;
+        
+        return lastMessageB.createdAt.compareTo(lastMessageA.createdAt);
+      });
+      
       setState(() {
         filteredUsers = results;
       });
-    } catch (e) {}
+    } catch (e) {
+      print('Error searching users: $e');
+    }
   }
 
   @override
@@ -142,6 +188,10 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
         }
 
         final users = snapshot.data ?? [];
+        if (users.isEmpty) {
+          return Center(child: Text('Không có người dùng nào'));
+        }
+
         return ListView.builder(
           itemCount: users.length,
           itemBuilder: (context, index) {

@@ -63,7 +63,9 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       "assets/profileicon1st.png",
                       nameController,
                       "Họ tên",
-                      onChanged: (value) => ref.read(profileProvider.notifier).updatefull_name(value),
+                      onChanged: (value) => ref
+                          .read(profileProvider.notifier)
+                          .updatefull_name(value),
                     ),
                     SizedBox(height: 20.h),
                     buildTextField(
@@ -71,21 +73,25 @@ class _EditScreenState extends ConsumerState<EditScreen> {
                       emailController,
                       "Email",
                       enabled: true,
-                      onChanged: (value) => ref.read(profileProvider.notifier).updateEmail(value),
+                      onChanged: (value) =>
+                          ref.read(profileProvider.notifier).updateEmail(value),
                     ),
                     SizedBox(height: 20.h),
                     buildTextField(
                       "assets/profileicon3rd.png",
                       phoneController,
                       "Số điện thoại",
-                      onChanged: (value) => ref.read(profileProvider.notifier).updatePhone(value),
+                      onChanged: (value) =>
+                          ref.read(profileProvider.notifier).updatePhone(value),
                     ),
                     SizedBox(height: 20.h),
                     buildTextField(
                       "assets/profileicon3rd.png",
                       addressController,
                       "Địa chỉ",
-                      onChanged: (value) => ref.read(profileProvider.notifier).updateAddress(value),
+                      onChanged: (value) => ref
+                          .read(profileProvider.notifier)
+                          .updateAddress(value),
                     ),
                   ],
                 ),
@@ -166,7 +172,8 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         onChanged: onChanged,
         decoration: InputDecoration(
           hintText: hint,
-          contentPadding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
+          contentPadding:
+              EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
           prefixIcon: Padding(
             padding: EdgeInsets.all(7.0.h),
             child: Image.asset(icon, height: 24.h, width: 24.h),
@@ -189,15 +196,16 @@ class _EditScreenState extends ConsumerState<EditScreen> {
         onTap: () async {
           try {
             final notifier = ref.read(profileProvider.notifier);
+            notifier.updateEmail(emailController.text);
             notifier.updatefull_name(nameController.text);
             notifier.updatePhone(phoneController.text);
             notifier.updateAddress(addressController.text);
-            
+
             await notifier.saveProfile();
-            
+
             final state = ref.read(profileProvider);
             if (state.updateStatus == UpdateStatus.success) {
-              Get.back();
+              Get.back(result: state.profile);
               Get.snackbar(
                 'Thành công',
                 'Cập nhật thông tin thành công',

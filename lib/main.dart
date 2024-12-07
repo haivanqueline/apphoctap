@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart' as provider;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:learn_megnagmet/splash/splash_screen.dart';
+import 'package:learn_megnagmet/providers/learning_provider.dart';
+import 'package:learn_megnagmet/repository/user_repository.dart';
 
 void main() {
   runApp(
-    const ProviderScope(
-      child: MyApp(),
+    ProviderScope(
+      child: provider.MultiProvider(
+        providers: [
+          provider.ChangeNotifierProvider<LearningProvider>(
+            create: (_) => LearningProvider(),
+          ),
+          provider.Provider<UserRepository>(
+            create: (_) => UserRepository(),
+          ),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }

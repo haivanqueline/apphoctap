@@ -1,14 +1,9 @@
-
-
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-import 'package:learn_megnagmet/controller/controller.dart';
-
-import '../utils/screen_size.dart';
+import 'package:provider/provider.dart';
+import '../providers/learning_provider.dart';
 import 'completed_screen.dart';
 import 'ongoing_screen.dart';
 
@@ -19,133 +14,150 @@ class OngoingCompletedScreen extends StatefulWidget {
   State<OngoingCompletedScreen> createState() => _OngoingCompletedScreenState();
 }
 
-class _OngoingCompletedScreenState extends State<OngoingCompletedScreen> {
+class _OngoingCompletedScreenState extends State<OngoingCompletedScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  bool _isInitialized = false;
 
-  OngoingCompletedController ongoingCompletedController =
-      Get.put(OngoingCompletedController());
-  PageController pageController = PageController();
-  List courcesClass = [OngoingScreen(), CompletedScreen()];
-  int initialValue = 1;
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      context.read<LearningProvider>().fetchMyCourses();
+      _isInitialized = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    initializeScreenSize(context);
-    return Scaffold(
-        body: WillPopScope(
-          onWillPop: (){
-            return Future.value(false);
-          },
-          child: GetBuilder<OngoingCompletedController>(
-      init: OngoingCompletedController(),
-      builder: (controller) => Column(
-          children: [
-             SizedBox(height: 73.h),
-            Padding(
-              padding:  EdgeInsets.symmetric(horizontal: 20.h),
-              child: Row(
-                children: [
-                  GestureDetector(
+    return Consumer<LearningProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0XFF23408F),
+            ),
+          );
+        }
+
+        if (provider.error != null) {
+          return Center(
+            child: Text(
+              'Lỗi: ${provider.error}',
+              style: TextStyle(fontSize: 16.sp),
+            ),
+          );
+        }
+
+        return Scaffold(
+          body: Column(
+            children: [
+              SizedBox(height: 73.h),
+              // Header
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.h),
+                child: Row(
+                  children: [
+                    GestureDetector(
                       onTap: () {
-                        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                        Navigator.pop(context);
                       },
-                      child:  Image(
+                      child: Image(
                         image: const AssetImage("assets/back_arrow.png"),
                         height: 24.h,
                         width: 24.w,
-                      )),
-                   SizedBox(width: 16.w),
-                   Text(
-                    "My Courses",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24.sp),
-                  ),
-                ],
+                      ),
+                    ),
+                    SizedBox(width: 16.w),
+                    Text(
+                      "My Courses",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 24.sp,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-             SizedBox(height: 20.h),
-            Padding(
-              padding:  EdgeInsets.symmetric(horizontal: 20.w),
-              child: Container(
-                height: 54,
-                width: double.infinity,
-                decoration: BoxDecoration(
+              SizedBox(height: 20.h),
+              // Tab Bar
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Container(
+                  height: 54,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(22.h),
                     boxShadow: [
                       BoxShadow(
-                          color: const Color(0XFF23408F).withOpacity(0.14),
-                          offset: const Offset(-4, 5),
-                          blurRadius: 16.h),
+                        color: const Color(0XFF23408F).withOpacity(0.14),
+                        offset: const Offset(-4, 5),
+                        blurRadius: 16.h,
+                      ),
                     ],
-                    color: Colors.white),
-                child: Padding(
-                  padding:  EdgeInsets.only(left: 8.w, right: 8.w),
-                  child: TabBar(
-                    unselectedLabelColor: Color(0XFF6E758A),
-                    padding:
-                     EdgeInsets.symmetric(horizontal: 8.w, vertical: 7.h),
-                    labelStyle:  TextStyle(
-                        color: Color(0XFF23408F),
+                    color: Colors.white,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 8.w, right: 8.w),
+                    child: TabBar(
+                      unselectedLabelColor: const Color(0XFF6E758A),
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 7.h),
+                      labelStyle: TextStyle(
+                        color: const Color(0XFF23408F),
                         fontWeight: FontWeight.bold,
                         fontSize: 15.sp,
-                        fontFamily: 'Gilroy'),
-                    labelColor: const Color(0XFF23408F),
-                    unselectedLabelStyle:  TextStyle(
-                        color: Color(0XFF23408F),
+                        fontFamily: 'Gilroy',
+                      ),
+                      labelColor: const Color(0XFF23408F),
+                      unselectedLabelStyle: TextStyle(
+                        color: const Color(0XFF23408F),
                         fontWeight: FontWeight.bold,
                         fontSize: 15.sp,
-                        fontFamily: 'Gilroy'),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: ShapeDecoration(
-
+                        fontFamily: 'Gilroy',
+                      ),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicator: ShapeDecoration(
                         color: const Color(0XFFE5ECFF),
                         shape: RoundedRectangleBorder(
-
-                            borderRadius: BorderRadius.circular(22.h),)),
-                    controller: ongoingCompletedController.tabController,
-                    tabs: const [
-                      Tab(
-                        text: "Ongoing ",
+                          borderRadius: BorderRadius.circular(22.h),
+                        ),
                       ),
-                      Tab(
-                        text: "Completed",
-                      ),
-
-                    ],
-                    onTap: (value) {
-                      ongoingCompletedController.pController.animateToPage(value,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.ease);
-                    },
+                      controller: _tabController,
+                      tabs: const [
+                        Tab(text: "Ongoing"),
+                        Tab(text: "Completed"),
+                      ],
+                    ),
                   ),
-
                 ),
               ),
-            ),
-SizedBox(height: 20.h),
-            Expanded(
-              child: PageView.builder(
-
-                controller:ongoingCompletedController.pController,
-                onPageChanged: (value){
-                  ongoingCompletedController.tabController.animateTo(value,
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.ease);
-                },
-
-                itemCount: courcesClass.length,
-                itemBuilder: (context, index) {
-                  return courcesClass[index];
-                },
+              SizedBox(height: 20.h),
+              // Tab View với loading indicator
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: const [
+                    OngoingScreen(),
+                    CompletedScreen(),
+                  ],
+                ),
               ),
-            ),
-          ],
-      ),
-    ),
-        ));
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
-    pageController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 }

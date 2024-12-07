@@ -32,18 +32,41 @@ class ProfileRepository {
 
   Future<bool> updateProfile(Profile profile) async {
     try {
+      print('Updating profile with data: ${profile.toJson()}');
+      
+      // Kiểm tra token
+      if (token.isEmpty) {
+        print('Token is empty');
+        return false;
+      }
+
       final response = await dio.post(
-        '/updateprofile',
+        api_updateprofile, // Sử dụng constant thay vì /updateprofile
         options: Options(
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
           },
+          validateStatus: (status) => true, // Cho phép mọi status code
         ),
         data: profile.toJson(),
       );
       
-      return response.statusCode == 200 && response.data['success'] == true;
+      // Kiểm tra response
+      if (response.statusCode == 401) {
+        print('Unauthorized - Token may be expired');
+        return false;
+      }
+      
+      if (response.headers.value('content-type')?.contains('text/html') ?? false) {
+        print('Received HTML response instead of JSON');
+        return false;
+      }
+
+      print('Update response: ${response.data}');
+      return response.statusCode == 200 && 
+             response.data is Map && 
+             response.data['success'] == true;
     } catch (e) {
       print('Error updating profile: $e');
       return false;

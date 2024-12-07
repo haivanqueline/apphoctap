@@ -226,8 +226,8 @@ class _RecentCourceDetailState extends State<RecentCourceDetail> {
                                             context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    VidioPlay(
-                                                        lessonplay:
+                                                    LessonPlay(
+                                                        baiHoc:
                                                         cource_detail[
                                                         index])));
                                       },

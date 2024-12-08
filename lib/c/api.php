@@ -41,6 +41,8 @@ Route::group(['namespace' => 'Api', 'prefix' => 'v1'], function () {
         Route::get('/learning-progress/{khoaHocId}', [\App\Http\Controllers\Api\LearningController::class, 'getLearningProgress']);
         Route::delete('/delete-course/{khoaHocId}', [\App\Http\Controllers\Api\LearningController::class, 'deleteKhoaHoc']);
         Route::delete('/delete-lesson/{baiHocId}', [\App\Http\Controllers\Api\LearningController::class, 'deleteBaiHoc']);
+        Route::post('/save-course/{khoaHocId}', [\App\Http\Controllers\Api\LearningController::class, 'saveKhoaHoc']);
+        Route::get('/saved-courses', [\App\Http\Controllers\Api\LearningController::class, 'getSavedKhoaHoc']);
     });
     // Route::get('khoahoc', [\App\Http\Controllers\Api\ApiKhoahocController::class, 'index']);  // GET: Lấy danh sách khóa học
     // Route::get('baihoc', [\App\Http\Controllers\Api\ApiBaihocController::class, 'index']);  // GET: Lấy danh sách khóa học

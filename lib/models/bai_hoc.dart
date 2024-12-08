@@ -33,18 +33,17 @@ class BaiHoc {
 
   factory BaiHoc.fromJson(Map<String, dynamic> json) {
     print('Parsing BaiHoc from JSON: $json');
-    
+
     List<TaiLieu>? taiLieuList;
     if (json['taiLieu'] != null && json['taiLieu'] != "[]") {
       try {
-        var taiLieuData = json['taiLieu'] is String 
-            ? jsonDecode(json['taiLieu']) 
+        var taiLieuData = json['taiLieu'] is String
+            ? jsonDecode(json['taiLieu'])
             : json['taiLieu'];
-        
+
         if (taiLieuData is List) {
-          taiLieuList = taiLieuData
-              .map((item) => TaiLieu.fromJson(item))
-              .toList();
+          taiLieuList =
+              taiLieuData.map((item) => TaiLieu.fromJson(item)).toList();
         }
       } catch (e) {
         print('Error parsing taiLieu: $e');
@@ -55,27 +54,27 @@ class BaiHoc {
       id: json['id'] is String ? int.tryParse(json['id']) : json['id'],
       tenBaiHoc: json['tenBaiHoc']?.toString() ?? '',
       moTa: json['moTa']?.toString(),
-      idKhoahoc: json['idKhoahoc'] is String 
-          ? int.tryParse(json['idKhoahoc']) ?? 0 
+      idKhoahoc: json['idKhoahoc'] is String
+          ? int.tryParse(json['idKhoahoc']) ?? 0
           : json['idKhoahoc'] ?? 0,
       video: json['video']?.toString(),
       noiDung: json['noiDung']?.toString(),
       taiLieu: taiLieuList,
-      thuTu: json['thuTu'] is String 
-          ? int.tryParse(json['thuTu']) ?? 0 
+      thuTu: json['thuTu'] is String
+          ? int.tryParse(json['thuTu']) ?? 0
           : json['thuTu'] ?? 0,
-      thoiLuong: json['thoiLuong'] is String 
-          ? int.tryParse(json['thoiLuong']) 
+      thoiLuong: json['thoiLuong'] is String
+          ? int.tryParse(json['thoiLuong'])
           : json['thoiLuong'],
-      luotXem: json['luotXem'] is String 
-          ? int.tryParse(json['luotXem']) 
+      luotXem: json['luotXem'] is String
+          ? int.tryParse(json['luotXem'])
           : json['luotXem'],
       trangThai: json['trangThai']?.toString() ?? 'active',
-      createdAt: json['createdAt'] != null 
-          ? DateTime.tryParse(json['createdAt'].toString()) 
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
           : null,
-      updatedAt: json['updatedAt'] != null 
-          ? DateTime.tryParse(json['updatedAt'].toString()) 
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'].toString())
           : null,
     );
   }
@@ -122,4 +121,3 @@ class TaiLieu {
     };
   }
 }
-

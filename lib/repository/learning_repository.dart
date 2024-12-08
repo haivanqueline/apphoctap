@@ -184,4 +184,37 @@ class LearningRepository {
       rethrow;
     }
   }
+
+  Future<http.Response> saveCourse(int khoaHocId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$api_save_course/$khoaHocId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response;
+    } catch (e) {
+      print('Repository Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<http.Response> getSavedCourses() async {
+    try {
+      final response = await http.get(
+        Uri.parse(api_get_saved_courses),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response;
+    } catch (e) {
+      print('Repository Error: $e');
+      rethrow;
+    }
+  }
+  
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import '../models/khoa_hoc.dart';
 import '../providers/learning_provider.dart';
 import '../utils/screen_size.dart';
 
@@ -17,7 +18,13 @@ class _ManageCoursesState extends State<ManageCourses> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LearningProvider>(context, listen: false).fetchMyCourses();
+      final provider = Provider.of<LearningProvider>(context, listen: false);
+      provider.fetchMyCourses();
+      provider.myCourses.forEach((course) {
+        if (course.id != null) {
+          provider.fetchLessonContent(course.id!);
+        }
+      });
     });
   }
 
@@ -197,44 +204,72 @@ class _ManageCoursesState extends State<ManageCourses> {
   }
 
   void _showLessons(int khoaHocId) {
+    Provider.of<LearningProvider>(context, listen: false)
+        .fetchLessonContent(khoaHocId);
+
     Get.dialog(
       AlertDialog(
         title: Text('Danh sách bài học'),
-        content: Consumer<LearningProvider>(
-          builder: (context, provider, child) {
-            if (provider.isLoadingLessons) {
-              return Center(child: CircularProgressIndicator());
-            }
+        content: Container(
+          width: double.maxFinite,
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Consumer<LearningProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoadingLessons) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-            final lessons = provider.lessons
-                .where((lesson) => lesson.idKhoahoc == khoaHocId)
-                .toList();
+              final lessons = provider.lessons
+                  .where((lesson) => lesson.idKhoahoc == khoaHocId)
+                  .toList();
 
-            if (lessons.isEmpty) {
-              return Text('Không có bài học nào');
-            }
+              if (lessons.isEmpty) {
+                return Center(
+                  child: Text(
+                    'Chưa có bài học nào trong khóa học này',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontFamily: 'Gilroy',
+                    ),
+                  ),
+                );
+              }
 
-            return SizedBox(
-              width: double.maxFinite,
-              child: ListView.builder(
-                shrinkWrap: true,
+              return ListView.builder(
                 itemCount: lessons.length,
                 itemBuilder: (context, index) {
                   final lesson = lessons[index];
-                  return ListTile(
-                    title: Text(lesson.tenBaiHoc ?? ''),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _showDeleteLessonDialog(
-                        lesson.id!,
-                        khoaHocId,
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 8.h),
+                    child: ListTile(
+                      title: Text(
+                        lesson.tenBaiHoc,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Gilroy',
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Thứ tự: ${lesson.thuTu}',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontFamily: 'Gilroy',
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          Get.back();
+                          _showDeleteLessonDialog(lesson.id!, khoaHocId);
+                        },
                       ),
                     ),
                   );
                 },
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
         actions: [
           TextButton(
@@ -249,8 +284,8 @@ class _ManageCoursesState extends State<ManageCourses> {
   void _showDeleteLessonDialog(int baiHocId, int khoaHocId) {
     Get.dialog(
       AlertDialog(
-        title: Text('Xác nhận'),
-        content: Text('Bạn có chắc chắn muốn xóa bài học này?'),
+        title: Text('Xác nhận xóa'),
+        content: Text('Bạn có chắc chắn muốn xóa bài học này không?'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
@@ -259,9 +294,10 @@ class _ManageCoursesState extends State<ManageCourses> {
           TextButton(
             onPressed: () async {
               Get.back();
-              final success =
-                  await Provider.of<LearningProvider>(context, listen: false)
-                      .deleteLesson(baiHocId, khoaHocId);
+              final success = await Provider.of<LearningProvider>(
+                context,
+                listen: false,
+              ).deleteLesson(baiHocId, khoaHocId);
 
               if (success) {
                 Get.snackbar(
@@ -269,6 +305,16 @@ class _ManageCoursesState extends State<ManageCourses> {
                   'Đã xóa bài học',
                   snackPosition: SnackPosition.BOTTOM,
                   backgroundColor: Colors.green,
+                  colorText: Colors.white,
+                );
+                Provider.of<LearningProvider>(context, listen: false)
+                    .fetchLessonContent(khoaHocId);
+              } else {
+                Get.snackbar(
+                  'Lỗi',
+                  'Không thể xóa bài học vì bạn không phải chủ khoá học này',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
                   colorText: Colors.white,
                 );
               }
@@ -280,6 +326,72 @@ class _ManageCoursesState extends State<ManageCourses> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLessonsList(KhoaHoc course) {
+    return Consumer<LearningProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoadingLessons) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        // In ra để debug
+        print('Course ID: ${course.id}');
+        print('Total lessons: ${provider.lessons.length}');
+        provider.lessons.forEach((lesson) {
+          print('Lesson ${lesson.id} belongs to course ${lesson.idKhoahoc}');
+        });
+
+        // Không cần lọc nữa vì API đã trả về bài học theo khóa học
+        final courseLessons = provider.lessons;
+
+        if (courseLessons.isEmpty) {
+          return Center(
+            child: Text(
+              'Chưa có bài học nào trong khóa học này',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontFamily: 'Gilroy',
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: courseLessons.length,
+          itemBuilder: (context, index) {
+            final lesson = courseLessons[index];
+            return Card(
+              margin: EdgeInsets.symmetric(vertical: 8.h),
+              child: ListTile(
+                title: Text(
+                  lesson.tenBaiHoc,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Gilroy',
+                  ),
+                ),
+                subtitle: Text(
+                  'Thứ tự: ${lesson.thuTu}',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontFamily: 'Gilroy',
+                  ),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () =>
+                      _showDeleteLessonDialog(lesson.id!, course.id!),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

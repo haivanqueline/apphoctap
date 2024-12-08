@@ -61,12 +61,15 @@ class _MyProfileState extends State<MyProfile> {
       title: "Tạo bài học",
       icon: "assets/designIcon3rd.png",
     ),
+    ProfileOption(
+      title: "Khóa học đã lưu",
+      icon: "assets/prorfileoptionicon3rd.png",
+    ),
   ];
 
   List profileOptionClass = [
     MyCertification(),
     MyProject(),
-    SavedCourse(),
     CertificatePayment(),
     HelpCenter(),
     PrivacyPolicy(),
@@ -75,6 +78,7 @@ class _MyProfileState extends State<MyProfile> {
     ManageCourses(),
     CreateCourse(),
     CreateLesson(khoaHocId: 0),
+    SavedCourse(),
   ];
   HomeMainController controller = Get.put(HomeMainController());
 
@@ -194,18 +198,24 @@ class _MyProfileState extends State<MyProfile> {
                                   right: 20.w),
                               child: GestureDetector(
                                 onTap: () {
-                                  if (index == profileOptionClass.length - 3) {
-                                    Get.to(() => ManageCourses());
-                                  } else if (index == profileOptionClass.length - 2) {
-                                    Get.to(() => CreateCourse());
-                                  } else if (index == profileOptionClass.length - 1) {
-                                    _showSelectCourseDialog();
-                                  } else {
-                                    if (index == 1 || index == 2) {
-                                      return;
-                                    } else {
-                                      Get.to(profileOptionClass[index]);
-                                    }
+                                  switch (profileoption[index].title) {
+                                    case "Khóa học đã lưu":
+                                      Get.to(() => SavedCourse());
+                                      break;
+                                    case "Quản lý khóa học":
+                                      Get.to(() => ManageCourses());
+                                      break;
+                                    case "Tạo khóa học":
+                                      Get.to(() => CreateCourse());
+                                      break;
+                                    case "Tạo bài học":
+                                      _showSelectCourseDialog();
+                                      break;
+                                    default:
+                                      // Xử lý các trường hợp khác như cũ
+                                      if (index < profileOptionClass.length) {
+                                        Get.to(() => profileOptionClass[index]);
+                                      }
                                   }
                                 },
                                 child: Container(

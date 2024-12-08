@@ -26,9 +26,6 @@ class _CourceDetailState extends State<CourceDetail> {
         await context.read<LearningProvider>().fetchLessonContent(widget.khoaHoc.id!);
         final lessons = context.read<LearningProvider>().lessons;
         print('Loaded lessons: ${lessons.length}');
-        lessons.forEach((lesson) {
-          print('Lesson name: ${lesson.tenBaiHoc}');
-        });
       } catch (e) {
         print('Error loading lessons: $e');
         if (mounted) {
@@ -44,10 +41,6 @@ class _CourceDetailState extends State<CourceDetail> {
   }
 
   Widget _buildLessonItem(BaiHoc lesson, int index) {
-    print('Building lesson item ${index + 1}:');
-    print('- ID: ${lesson.id}');
-    print('- Ten bai hoc: ${lesson.tenBaiHoc}');
-    print('- Mo ta: ${lesson.moTa}');
     
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),

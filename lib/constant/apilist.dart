@@ -27,6 +27,8 @@ final String api_get_lesson_content = '$base/lesson-content';
 final String api_get_learning_progress = '$base/learning-progress';
 final String api_delete_course = '$base/delete-course';
 final String api_delete_lesson = '$base/delete-lesson';
+final String api_save_course = '$base/save-course';
+final String api_get_saved_courses = '$base/saved-courses';
 
 // Global Variables
 String token = '';

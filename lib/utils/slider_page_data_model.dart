@@ -82,8 +82,12 @@ class Utils {
     return [
       Design(photo: 'assets/d3.png', full_name: 'Design', color: '0XFFFFF6E5'),
       Design(photo: 'assets/d4.png', full_name: 'Code', color: '0XFFFEE9EB'),
-      Design(photo: 'assets/d5.png', full_name: 'Buisness', color: '0XFFECF6FF'),
-      Design(photo: 'assets/d6.png', full_name: 'Photography', color: '0XFFFFF6E5'),
+      Design(
+          photo: 'assets/d5.png', full_name: 'Buisness', color: '0XFFECF6FF'),
+      Design(
+          photo: 'assets/d6.png',
+          full_name: 'Photography',
+          color: '0XFFFFF6E5'),
     ];
   }
 
@@ -574,8 +578,6 @@ class Utils {
           title: 'My Certifications', icon: 'assets/prorfileoptionicon1st.png'),
       ProfileOption(
           title: 'My Projects', icon: 'assets/prorfileoptionicon2nd.png'),
-      ProfileOption(
-          title: 'Saved Course', icon: 'assets/prorfileoptionicon3rd.png'),
       ProfileOption(title: 'My Card', icon: 'assets/prorfileoptionicon4th.png'),
       ProfileOption(
           title: 'Help Center', icon: 'assets/prorfileoptionicon5th.png'),

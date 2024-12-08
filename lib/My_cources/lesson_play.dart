@@ -119,94 +119,207 @@ class _LessonPlayState extends State<LessonPlay> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        Navigator.of(context).pop();
-        return false;
-      },
-      child: Scaffold(
-        body: SafeArea(
+    initializeScreenSize(context);
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header với nút back
-              SizedBox(height: 26.h),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.h),
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: const Image(
-                    image: AssetImage("assets/back_arrow.png"),
-                    height: 24,
-                    width: 24,
-                  ),
-                ),
-              ),
-              
-              // Video player
-              SizedBox(height: 95.h),
-              Center(
-                child: Container(
-                  height: 345.h,
-                  child: _buildVideoPlayer(),
+              // Header
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: EdgeInsets.all(8.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0XFFE5ECFF),
+                          borderRadius: BorderRadius.circular(8.h),
+                        ),
+                        child: Image.asset(
+                          "assets/back_arrow.png",
+                          height: 24.h,
+                          width: 24.w,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 15.w),
+                    Text(
+                      widget.baiHoc.tenBaiHoc,
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Gilroy',
+                        color: const Color(0XFF23408F),
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
-              // Nội dung bài học
-              if (!hasError) Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(20.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.baiHoc.tenBaiHoc,
-                        style: TextStyle(
-                          fontSize: 20.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF23408F),
-                        ),
+              // Video Player Card
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 15.w),
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.h),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0XFF23408F).withOpacity(0.14),
+                        offset: const Offset(-4, 5),
+                        blurRadius: 16,
                       ),
-                      SizedBox(height: 16.h),
-                      if (widget.baiHoc.moTa != null) ...[
-                        Text(
-                          'Mô tả:',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          widget.baiHoc.moTa!,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                      if (widget.baiHoc.noiDung != null) ...[
-                        SizedBox(height: 16.h),
-                        Text(
-                          'Nội dung:',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          widget.baiHoc.noiDung!,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
                     ],
+                  ),
+                  child: Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.h),
+                    ),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(12.h),
+                          ),
+                          child: Container(
+                            height: 345.h,
+                            child: _buildVideoPlayer(),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(16.h),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    height: 20.h,
+                                    width: 63.w,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(22.h),
+                                      color: const Color(0XFFE5ECFF),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        'Bài ${widget.baiHoc.thuTu}',
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0XFF23408F),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  if (widget.baiHoc.luotXem != null) ...[
+                                    SizedBox(width: 10.w),
+                                    Icon(
+                                      Icons.remove_red_eye,
+                                      size: 16.h,
+                                      color: const Color(0XFF23408F),
+                                    ),
+                                    SizedBox(width: 4.w),
+                                    Text(
+                                      '${widget.baiHoc.luotXem} lượt xem',
+                                      style: TextStyle(
+                                        fontSize: 12.sp,
+                                        color: const Color(0XFF23408F),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              SizedBox(height: 16.h),
+                              if (widget.baiHoc.moTa != null) ...[
+                                Text(
+                                  'Mô tả',
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0XFF23408F),
+                                  ),
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  widget.baiHoc.moTa!,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: Colors.black87,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                              if (widget.baiHoc.noiDung != null) ...[
+                                SizedBox(height: 16.h),
+                                Text(
+                                  'Nội dung bài học',
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0XFF23408F),
+                                  ),
+                                ),
+                                SizedBox(height: 8.h),
+                                Text(
+                                  widget.baiHoc.noiDung!,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    color: Colors.black87,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                              if (widget.baiHoc.taiLieu != null &&
+                                  widget.baiHoc.taiLieu!.isNotEmpty) ...[
+                                SizedBox(height: 16.h),
+                                Text(
+                                  'Tài liệu đính kèm',
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0XFF23408F),
+                                  ),
+                                ),
+                                SizedBox(height: 8.h),
+                                ...widget.baiHoc.taiLieu!.map((taiLieu) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(bottom: 8.h),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.attachment,
+                                          color: const Color(0XFF23408F),
+                                          size: 20.h,
+                                        ),
+                                        SizedBox(width: 8.w),
+                                        Expanded(
+                                          child: Text(
+                                            taiLieu.name,
+                                            style: TextStyle(
+                                              fontSize: 14.sp,
+                                              color: const Color(0XFF23408F),
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
+              SizedBox(height: 20.h),
             ],
           ),
         ),

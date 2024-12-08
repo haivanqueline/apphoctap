@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
+import '../models/khoa_hoc.dart';
 import '../providers/learning_provider.dart';
 import 'cources_details.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
 
 class OngoingScreen extends StatefulWidget {
   const OngoingScreen({Key? key}) : super(key: key);
@@ -36,72 +38,162 @@ class _OngoingScreenState extends State<OngoingScreen> {
           itemCount: ongoingCourses.length,
           itemBuilder: (context, index) {
             final course = ongoingCourses[index];
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 20.w),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CourceDetail(khoaHoc: course),
-                    ),
-                  );
-                },
-                child: Container(
-                  height: 124.h,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0XFF23408F).withOpacity(0.14),
-                        offset: const Offset(-4, 5),
-                        blurRadius: 16,
-                      ),
-                    ],
-                    color: Colors.white,
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w),
-                    child: Row(
-                      children: [
-                        _buildThumbnail(course.thumbnail),
-                        SizedBox(width: 10.w),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: 20.h),
-                              Text(
-                                course.tenKhoaHoc,
-                                style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontFamily: 'Gilroy',
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 10.h),
-                              LinearPercentIndicator(
-                                padding: EdgeInsets.zero,
-                                lineHeight: 6.h,
-                                backgroundColor: const Color(0XFFDEDEDE),
-                                progressColor: const Color(0XFF23408F),
-                                percent: 0.0,
-                                barRadius: const Radius.circular(22),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
+            return _buildCourseCard(course);
           },
         );
       },
+    );
+  }
+
+  Widget _buildCourseCard(KhoaHoc course) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 20.w),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CourceDetail(khoaHoc: course),
+            ),
+          );
+        },
+        child: Container(
+          height: 124.h,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0XFF23408F).withOpacity(0.14),
+                offset: const Offset(-4, 5),
+                blurRadius: 16,
+              ),
+            ],
+            color: Colors.white,
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10.w),
+            child: Row(
+              children: [
+                _buildThumbnail(course.thumbnail),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 20.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              course.tenKhoaHoc,
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontFamily: 'Gilroy',
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Consumer<LearningProvider>(
+                            builder: (context, provider, child) {
+                              final isSaved = provider.savedCourses
+                                  .any((saved) => saved.id == course.id);
+                              return IconButton(
+                                icon: Icon(
+                                  isSaved
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: isSaved ? Colors.red : Colors.grey,
+                                ),
+                                onPressed: () async {
+                                  if (isSaved) {
+                                    // Hiển thị dialog xác nhận bỏ lưu
+                                    Get.dialog(
+                                      AlertDialog(
+                                        title: Text('Xác nhận'),
+                                        content: Text(
+                                            'Bạn muốn bỏ lưu khóa học này?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Get.back(),
+                                            child: Text('Hủy'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () async {
+                                              Get.back();
+                                              final success = await provider
+                                                  .saveCourse(course.id!);
+                                              if (success) {
+                                                Get.snackbar(
+                                                  'Thành công',
+                                                  'Đã bỏ lưu khóa học',
+                                                  snackPosition:
+                                                      SnackPosition.BOTTOM,
+                                                  backgroundColor: Colors.green,
+                                                  colorText: Colors.white,
+                                                );
+                                              } else if (provider.error !=
+                                                  null) {
+                                                Get.snackbar(
+                                                  'Lỗi',
+                                                  provider.error!,
+                                                  snackPosition:
+                                                      SnackPosition.BOTTOM,
+                                                  backgroundColor: Colors.red,
+                                                  colorText: Colors.white,
+                                                );
+                                              }
+                                            },
+                                            child: Text('Đồng ý'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  } else {
+                                    final success =
+                                        await provider.saveCourse(course.id!);
+                                    if (success) {
+                                      Get.snackbar(
+                                        'Thành công',
+                                        'Đã lưu khóa học',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        backgroundColor: Colors.green,
+                                        colorText: Colors.white,
+                                      );
+                                    } else if (provider.error != null) {
+                                      Get.snackbar(
+                                        'Lỗi',
+                                        provider.error!,
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        backgroundColor: Colors.red,
+                                        colorText: Colors.white,
+                                      );
+                                    }
+                                  }
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10.h),
+                      LinearPercentIndicator(
+                        padding: EdgeInsets.zero,
+                        lineHeight: 6.h,
+                        backgroundColor: const Color(0XFFDEDEDE),
+                        progressColor: const Color(0XFF23408F),
+                        percent: 0.0,
+                        barRadius: const Radius.circular(22),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -109,7 +201,6 @@ class _OngoingScreenState extends State<OngoingScreen> {
     if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
       return _buildPlaceholder();
     }
-
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -239,7 +330,8 @@ class _OngoingScreenState extends State<OngoingScreen> {
             backgroundColor: const Color(0XFFDEDEDE),
             progressColor: const Color(0XFF23408F),
             percent: loadingProgress.expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                ? loadingProgress.cumulativeBytesLoaded /
+                    loadingProgress.expectedTotalBytes!
                 : 0.0,
             barRadius: const Radius.circular(22),
           ),

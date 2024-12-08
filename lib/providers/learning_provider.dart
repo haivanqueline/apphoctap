@@ -14,12 +14,14 @@ class LearningProvider with ChangeNotifier {
   List<BaiHoc> _lessons = [];
   String? _error;
   bool _isFirstLoad = true;
+  List<KhoaHoc> _savedCourses = [];
 
   bool get isLoading => _isLoading;
   bool get isLoadingLessons => _isLoadingLessons;
   List<KhoaHoc> get myCourses => _myCourses;
   List<BaiHoc> get lessons => _lessons;
   String? get error => _error;
+  List<KhoaHoc> get savedCourses => _savedCourses;
 
   Future<void> fetchMyCourses() async {
     if (!_isFirstLoad && _myCourses.isNotEmpty) {
@@ -80,33 +82,19 @@ class LearningProvider with ChangeNotifier {
           print('Parsing lessons data: $lessonsData');
 
           _lessons = lessonsData.map((json) {
-            var lessonData = Map<String, dynamic>.from(json);
-            print('Processing lesson: $lessonData');
-
-            if (lessonData['thu_tu'] is String) {
-              lessonData['thu_tu'] = int.tryParse(lessonData['thu_tu']) ?? 0;
+            if (json['id_khoahoc'] is String) {
+              json['id_khoahoc'] = int.parse(json['id_khoahoc']);
             }
-            if (lessonData['id_khoahoc'] is String) {
-              lessonData['id_khoahoc'] =
-                  int.tryParse(lessonData['id_khoahoc']) ?? 0;
-            }
-            if (lessonData['thoi_luong'] is String) {
-              lessonData['thoi_luong'] =
-                  int.tryParse(lessonData['thoi_luong']) ?? 0;
-            }
-            if (lessonData['luot_xem'] is String) {
-              lessonData['luot_xem'] =
-                  int.tryParse(lessonData['luot_xem']) ?? 0;
-            }
-
-            return BaiHoc.fromJson(lessonData);
+            return BaiHoc.fromJson(json);
           }).toList();
 
-          _lessons.forEach((lesson) {
-            print('Parsed lesson: ${lesson.tenBaiHoc}');
-          });
-
           _lessons.sort((a, b) => a.thuTu.compareTo(b.thuTu));
+          print('Loaded ${_lessons.length} lessons for course $khoaHocId');
+
+          _lessons.forEach((lesson) {
+            print(
+                'Lesson ID: ${lesson.id}, Name: ${lesson.tenBaiHoc}, CourseID: ${lesson.idKhoahoc}');
+          });
         } else {
           _lessons = [];
           print('No lessons data found in response');
@@ -271,7 +259,6 @@ class LearningProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData['status'] == true) {
-          // Xóa khóa học khỏi danh sách local
           _myCourses.removeWhere((course) => course.id == khoaHocId);
           notifyListeners();
           return true;
@@ -303,7 +290,6 @@ class LearningProvider with ChangeNotifier {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData['status'] == true) {
-          // Cập nhật lại danh sách bài học
           await fetchLessonContent(khoaHocId);
           return true;
         }
@@ -316,6 +302,65 @@ class LearningProvider with ChangeNotifier {
       return false;
     } finally {
       _isLoadingLessons = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> saveCourse(int khoaHocId) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _learningRepository.saveCourse(khoaHocId);
+
+      print('Save course response status: ${response.statusCode}');
+      print('Save course response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData['status'] == true) {
+          await fetchSavedCourses(); // Refresh danh sách khóa học đã lưu
+          return true;
+        }
+      }
+      _error = 'Không thể lưu khóa học';
+      return false;
+    } catch (e) {
+      print('Error saving course: $e');
+      _error = 'Lỗi khi lưu khóa học: $e';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchSavedCourses() async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _learningRepository.getSavedCourses();
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData['status'] == true && responseData['data'] != null) {
+          final List<dynamic> coursesData = responseData['data'];
+          _savedCourses =
+              coursesData.map((json) => KhoaHoc.fromJson(json)).toList();
+        } else {
+          _savedCourses = [];
+        }
+      } else {
+        _error = 'Không thể tải danh sách khóa học đã lưu';
+      }
+    } catch (e) {
+      print('Error fetching saved courses: $e');
+      _error = 'Lỗi khi tải khóa học đã lưu: $e';
+    } finally {
+      _isLoading = false;
       notifyListeners();
     }
   }

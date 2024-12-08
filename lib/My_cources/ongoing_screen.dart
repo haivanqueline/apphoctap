@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import '../providers/learning_provider.dart';
 import 'cources_details.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class OngoingScreen extends StatefulWidget {
   const OngoingScreen({Key? key}) : super(key: key);
@@ -63,63 +64,7 @@ class _OngoingScreenState extends State<OngoingScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 10.w),
                     child: Row(
                       children: [
-                        course.thumbnail != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  course.thumbnail!,
-                                  height: 100.h,
-                                  width: 100.w,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      height: 100.h,
-                                      width: 100.w,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Icon(
-                                        Icons.image_not_supported,
-                                        color: Colors.grey[400],
-                                        size: 40,
-                                      ),
-                                    );
-                                  },
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Container(
-                                      height: 100.h,
-                                      width: 100.w,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          value: loadingProgress.expectedTotalBytes != null
-                                              ? loadingProgress.cumulativeBytesLoaded /
-                                                  loadingProgress.expectedTotalBytes!
-                                              : null,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              )
-                            : Container(
-                                height: 100.h,
-                                width: 100.w,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Icon(
-                                  Icons.image,
-                                  color: Colors.grey[400],
-                                  size: 40,
-                                ),
-                              ),
+                        _buildThumbnail(course.thumbnail),
                         SizedBox(width: 10.w),
                         Expanded(
                           child: Column(
@@ -131,15 +76,18 @@ class _OngoingScreenState extends State<OngoingScreen> {
                                 style: TextStyle(
                                   fontSize: 18.sp,
                                   fontFamily: 'Gilroy',
+                                  fontWeight: FontWeight.w600,
                                 ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               SizedBox(height: 10.h),
-                              SizedBox(height: 15.h),
                               LinearPercentIndicator(
                                 padding: EdgeInsets.zero,
                                 lineHeight: 6.h,
                                 backgroundColor: const Color(0XFFDEDEDE),
                                 progressColor: const Color(0XFF23408F),
+                                percent: 0.0,
                                 barRadius: const Radius.circular(22),
                               ),
                             ],
@@ -154,6 +102,149 @@ class _OngoingScreenState extends State<OngoingScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildThumbnail(String? thumbnailUrl) {
+    if (thumbnailUrl == null || thumbnailUrl.isEmpty) {
+      return _buildPlaceholder();
+    }
+
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: CachedNetworkImage(
+        imageUrl: thumbnailUrl,
+        height: 100.h,
+        width: 100.w,
+        fit: BoxFit.cover,
+        httpHeaders: {
+          'Accept': 'image/jpeg,image/png,image/jpg',
+        },
+        placeholder: (context, url) => Container(
+          height: 100.h,
+          width: 100.w,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF23408F)),
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) {
+          return Container(
+            height: 100.h,
+            width: 100.w,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  color: Colors.grey[400],
+                  size: 30,
+                ),
+                SizedBox(height: 5.h),
+                Text(
+                  'Lỗi tải ảnh',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 12.sp,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      height: 100.h,
+      width: 100.w,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(
+        Icons.image,
+        color: Colors.grey[400],
+        size: 40,
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Container(
+      height: 100.h,
+      width: 100.w,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Colors.grey[400],
+            size: 30,
+          ),
+          SizedBox(height: 5.h),
+          Text(
+            'Lỗi tải ảnh',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12.sp,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget(ImageChunkEvent loadingProgress) {
+    return Container(
+      height: 100.h,
+      width: 100.w,
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Đang tải ảnh...',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12.sp,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 5.h),
+          LinearPercentIndicator(
+            padding: EdgeInsets.zero,
+            lineHeight: 6.h,
+            backgroundColor: const Color(0XFFDEDEDE),
+            progressColor: const Color(0XFF23408F),
+            percent: loadingProgress.expectedTotalBytes != null
+                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                : 0.0,
+            barRadius: const Radius.circular(22),
+          ),
+        ],
+      ),
     );
   }
 }

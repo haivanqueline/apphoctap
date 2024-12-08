@@ -40,14 +40,16 @@ class LearningProvider with ChangeNotifier {
         if (responseData['status'] == true) {
           if (responseData['data'] != null) {
             final List<dynamic> coursesData = responseData['data'];
-            _myCourses = coursesData.map((json) => KhoaHoc.fromJson(json)).toList();
+            _myCourses =
+                coursesData.map((json) => KhoaHoc.fromJson(json)).toList();
             _isFirstLoad = false;
             print('Loaded ${_myCourses.length} courses');
           } else {
             _myCourses = [];
           }
         } else {
-          _error = responseData['message'] ?? 'Không thể tải danh sách khóa học';
+          _error =
+              responseData['message'] ?? 'Không thể tải danh sách khóa học';
         }
       } else {
         _error = 'Không thể tải danh sách khóa học';
@@ -85,22 +87,25 @@ class LearningProvider with ChangeNotifier {
               lessonData['thu_tu'] = int.tryParse(lessonData['thu_tu']) ?? 0;
             }
             if (lessonData['id_khoahoc'] is String) {
-              lessonData['id_khoahoc'] = int.tryParse(lessonData['id_khoahoc']) ?? 0;
+              lessonData['id_khoahoc'] =
+                  int.tryParse(lessonData['id_khoahoc']) ?? 0;
             }
             if (lessonData['thoi_luong'] is String) {
-              lessonData['thoi_luong'] = int.tryParse(lessonData['thoi_luong']) ?? 0;
+              lessonData['thoi_luong'] =
+                  int.tryParse(lessonData['thoi_luong']) ?? 0;
             }
             if (lessonData['luot_xem'] is String) {
-              lessonData['luot_xem'] = int.tryParse(lessonData['luot_xem']) ?? 0;
+              lessonData['luot_xem'] =
+                  int.tryParse(lessonData['luot_xem']) ?? 0;
             }
 
             return BaiHoc.fromJson(lessonData);
           }).toList();
-          
+
           _lessons.forEach((lesson) {
             print('Parsed lesson: ${lesson.tenBaiHoc}');
           });
-          
+
           _lessons.sort((a, b) => a.thuTu.compareTo(b.thuTu));
         } else {
           _lessons = [];
@@ -250,5 +255,68 @@ class LearningProvider with ChangeNotifier {
   Future<void> refreshCourses() async {
     _isFirstLoad = true;
     await fetchMyCourses();
+  }
+
+  Future<bool> deleteCourse(int khoaHocId) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _learningRepository.deleteCourse(khoaHocId);
+
+      print('Delete course response status: ${response.statusCode}');
+      print('Delete course response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData['status'] == true) {
+          // Xóa khóa học khỏi danh sách local
+          _myCourses.removeWhere((course) => course.id == khoaHocId);
+          notifyListeners();
+          return true;
+        }
+      }
+      _error = 'Không thể xóa khóa học';
+      return false;
+    } catch (e) {
+      print('Error deleting course: $e');
+      _error = 'Lỗi khi xóa khóa học: $e';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deleteLesson(int baiHocId, int khoaHocId) async {
+    try {
+      _isLoadingLessons = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _learningRepository.deleteLesson(baiHocId);
+
+      print('Delete lesson response status: ${response.statusCode}');
+      print('Delete lesson response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData['status'] == true) {
+          // Cập nhật lại danh sách bài học
+          await fetchLessonContent(khoaHocId);
+          return true;
+        }
+      }
+      _error = 'Không thể xóa bài học';
+      return false;
+    } catch (e) {
+      print('Error deleting lesson: $e');
+      _error = 'Lỗi khi xóa bài học: $e';
+      return false;
+    } finally {
+      _isLoadingLessons = false;
+      notifyListeners();
+    }
   }
 }

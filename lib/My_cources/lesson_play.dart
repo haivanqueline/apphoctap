@@ -33,38 +33,62 @@ class _LessonPlayState extends State<LessonPlay> {
   Future<void> _initializeVideo() async {
     if (widget.baiHoc.video != null && widget.baiHoc.video!.isNotEmpty) {
       try {
-        print('Initializing video from URL: ${widget.baiHoc.video}');
+        String videoUrl = widget.baiHoc.video!;
+        print('Original video URL: $videoUrl');
+
+        if (videoUrl.contains('127.0.0.1') || videoUrl.contains('localhost')) {
+          videoUrl = videoUrl.replaceAll('https://', 'http://');
+        }
         
-        if (!_isValidVideoUrl(widget.baiHoc.video!)) {
-          throw Exception('URL video không hợp lệ');
+        if (!videoUrl.startsWith('http')) {
+          videoUrl = 'http://127.0.0.1:8000/storage/$videoUrl';
         }
 
-        final controller = VideoPlayerController.networkUrl(
-          Uri.parse(widget.baiHoc.video!),
+        print('Final video URL: $videoUrl');
+
+        final controller = VideoPlayerController.network(
+          videoUrl,
           videoPlayerOptions: VideoPlayerOptions(
             mixWithOthers: true,
+            allowBackgroundPlayback: false,
           ),
-        );
-
-        await controller.initialize().timeout(
-          Duration(seconds: 10),
-          onTimeout: () {
-            throw TimeoutException('Không thể tải video sau 10 giây');
+          httpHeaders: {
+            'Access-Control-Allow-Origin': '*',
+            'Accept': 'video/mp4,video/*;q=0.9,*/*;q=0.8',
           },
         );
-        
+
+        bool initialized = false;
+        try {
+          await controller.initialize().timeout(
+            Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException('Không thể tải video sau 10 giây');
+            },
+          );
+          initialized = true;
+        } catch (e) {
+          print('Initialization error: $e');
+          throw e;
+        }
+
         if (!mounted) return;
 
-        setState(() {
-          flickManager = FlickManager(
-            videoPlayerController: controller,
-            autoPlay: false,
-            autoInitialize: true,
-          );
-          isVideoInitialized = true;
-          hasError = false;
-          errorMessage = '';
-        });
+        if (initialized && !controller.value.hasError) {
+          setState(() {
+            flickManager = FlickManager(
+              videoPlayerController: controller,
+              autoPlay: false,
+              autoInitialize: true,
+            );
+            isVideoInitialized = true;
+            hasError = false;
+            errorMessage = '';
+          });
+        } else {
+          throw Exception('Không thể khởi tạo video player');
+        }
+
       } catch (e) {
         print('Video initialization error: $e');
         if (!mounted) return;
@@ -76,105 +100,115 @@ class _LessonPlayState extends State<LessonPlay> {
     }
   }
 
-  bool _isValidVideoUrl(String url) {
-    try {
-      final uri = Uri.parse(url);
-      return uri.isAbsolute && (uri.scheme == 'http' || uri.scheme == 'https');
-    } catch (e) {
-      return false;
-    }
-  }
-
   String _getErrorMessage(String error) {
-    if (error.contains('MEDIA_ERR_SRC_NOT_SUPPORTED') || 
-        error.contains('Format error') ||
-        error.contains('VideoError')) {
-      return 'Định dạng video không được hỗ trợ. Vui lòng thử định dạng khác (MP4, WebM).';
+    if (error.contains('MEDIA_ERR_SRC_NOT_SUPPORTED')) {
+      return 'Video không được hỗ trợ. Vui lòng thử:\n'
+          '1. Kiểm tra định dạng video (nên dùng MP4 với codec H.264)\n'
+          '2. Kiểm tra kết nối mạng\n'
+          '3. Đảm bảo URL video có thể truy cập được';
     } else if (error.contains('TimeoutException')) {
-      return 'Không thể tải video, vui lòng kiểm tra kết nối mạng và thử lại.';
-    } else if (error.contains('PLATFORM_EXCEPTION')) {
-      return 'Thiết bị không hỗ trợ phát video này. Vui lòng thử trên thiết bị khác.';
+      return 'Không thể tải video. Vui lòng:\n'
+          '1. Kiểm tra kết nối mạng\n'
+          '2. Thử lại sau';
+    } else if (error.contains('Format error') || error.contains('Video không hợp lệ')) {
+      return 'Định dạng video không được hỗ trợ.\n'
+          'Vui lòng chuyển đổi video sang định dạng MP4 (H.264)';
     }
-    return 'Không thể phát video: ${error.split(':').last}';
+    return 'Lỗi phát video: ${error.split('Exception:').last.trim()}';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(widget.baiHoc.tenBaiHoc),
-        backgroundColor: Color(0xFF23408F),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Container(
-                color: Colors.black,
-                child: _buildVideoPlayer(),
-              ),
-            ),
-            if (hasError) ...[
-              SizedBox(height: 20.h),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop();
+        return false;
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header với nút back
+              SizedBox(height: 26.h),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: Text(
-                  errorMessage,
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 14.sp,
+                padding: EdgeInsets.symmetric(horizontal: 20.h),
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: const Image(
+                    image: AssetImage("assets/back_arrow.png"),
+                    height: 24,
+                    width: 24,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
-              SizedBox(height: 10.h),
-              ElevatedButton(
-                onPressed: _initializeVideo,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF23408F),
+              
+              // Video player
+              SizedBox(height: 95.h),
+              Center(
+                child: Container(
+                  height: 345.h,
+                  child: _buildVideoPlayer(),
                 ),
-                child: Text('Thử lại'),
+              ),
+
+              // Nội dung bài học
+              if (!hasError) Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(20.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.baiHoc.tenBaiHoc,
+                        style: TextStyle(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF23408F),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                      if (widget.baiHoc.moTa != null) ...[
+                        Text(
+                          'Mô tả:',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          widget.baiHoc.moTa!,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                      if (widget.baiHoc.noiDung != null) ...[
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Nội dung:',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          widget.baiHoc.noiDung!,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ],
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(16.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (widget.baiHoc.moTa != null) ...[
-                      Text(
-                        'Mô tả:',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(widget.baiHoc.moTa!),
-                    ],
-                    if (widget.baiHoc.noiDung != null) ...[
-                      SizedBox(height: 16.h),
-                      Text(
-                        'Nội dung:',
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(widget.baiHoc.noiDung!),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -182,32 +216,53 @@ class _LessonPlayState extends State<LessonPlay> {
 
   Widget _buildVideoPlayer() {
     if (hasError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 48),
-            SizedBox(height: 16),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Text(
-                errorMessage,
-                style: TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
+      return Container(
+        color: Colors.black,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, color: Colors.white, size: 48),
+              SizedBox(height: 16),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                child: Text(
+                  errorMessage,
+                  style: TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _initializeVideo,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF23408F),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: Text('Thử lại'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (isVideoInitialized && flickManager != null) {
-      return FlickVideoPlayer(flickManager: flickManager!);
+      return FlickVideoPlayer(
+        flickManager: flickManager!,
+        flickVideoWithControls: FlickVideoWithControls(
+          controls: FlickPortraitControls(),
+          videoFit: BoxFit.contain,
+        ),
+      );
     }
 
-    return Center(
-      child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF23408F)),
+    return Container(
+      color: Colors.black,
+      child: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF23408F)),
+        ),
       ),
     );
   }

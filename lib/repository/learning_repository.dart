@@ -152,4 +152,36 @@ class LearningRepository {
       rethrow;
     }
   }
+
+  Future<http.Response> deleteCourse(int khoaHocId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$api_delete_course/$khoaHocId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response;
+    } catch (e) {
+      print('Repository Error: $e');
+      rethrow;
+    }
+  }
+
+  Future<http.Response> deleteLesson(int baiHocId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$api_delete_lesson/$baiHocId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response;
+    } catch (e) {
+      print('Repository Error: $e');
+      rethrow;
+    }
+  }
 }

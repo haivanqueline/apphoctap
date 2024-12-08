@@ -27,6 +27,7 @@ import '../utils/shared_pref.dart';
 import 'certi_payment.dart';
 import 'create_course.dart';
 import 'create_lesson.dart';
+import 'manage_courses.dart';
 
 class MyProfile extends StatefulWidget {
   const MyProfile({Key? key, required this.profile_detail}) : super(key: key);
@@ -49,12 +50,16 @@ class _MyProfileState extends State<MyProfile> {
   List<ProfileOption> profileoption = [
     ...Utils.getProfileOption(),
     ProfileOption(
+      title: "Quản lý khóa học",
+      icon: "assets/designIcon2nd.png",
+    ),
+    ProfileOption(
       title: "Tạo khóa học",
       icon: "assets/designIcon1st.png",
     ),
     ProfileOption(
       title: "Tạo bài học",
-      icon: "assets/designIcon1st.png",
+      icon: "assets/designIcon3rd.png",
     ),
   ];
 
@@ -67,6 +72,7 @@ class _MyProfileState extends State<MyProfile> {
     PrivacyPolicy(),
     FeedBack(),
     RateUs(),
+    ManageCourses(),
     CreateCourse(),
     CreateLesson(khoaHocId: 0),
   ];
@@ -188,14 +194,12 @@ class _MyProfileState extends State<MyProfile> {
                                   right: 20.w),
                               child: GestureDetector(
                                 onTap: () {
-                                  if (index == profileOptionClass.length - 2) {
+                                  if (index == profileOptionClass.length - 3) {
+                                    Get.to(() => ManageCourses());
+                                  } else if (index == profileOptionClass.length - 2) {
                                     Get.to(() => CreateCourse());
-                                  } else if (index ==
-                                      profileOptionClass.length - 1) {
+                                  } else if (index == profileOptionClass.length - 1) {
                                     _showSelectCourseDialog();
-                                  } else if (index ==
-                                      profileOptionClass.length - 3) {
-                                    rateUs_dialogue();
                                   } else {
                                     if (index == 1 || index == 2) {
                                       return;

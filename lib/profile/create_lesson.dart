@@ -194,39 +194,24 @@ class _CreateLessonState extends State<CreateLesson> {
 
   Future<void> _pickVideo() async {
     try {
-      if (kIsWeb) {
-        // Sử dụng image_picker cho web
-        final ImagePicker picker = ImagePicker();
-        final XFile? video =
-            await picker.pickVideo(source: ImageSource.gallery);
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['mp4'],
+        allowCompression: true,
+        allowMultiple: false,
+        withData: true,
+      );
 
-        if (video != null) {
-          final bytes = await video.readAsBytes();
-          setState(() {
-            _video = PlatformFile(
-              name: video.name,
-              size: bytes.length,
-              bytes: bytes,
-            );
-          });
-        }
-      } else {
-        // Sử dụng file_picker cho mobile
-        final result = await FilePicker.platform.pickFiles(
-          type: FileType.video,
-          allowMultiple: false,
-        );
-
-        if (result != null) {
-          setState(() {
-            _video = result.files.first;
-          });
-        }
+      if (result != null) {
+        setState(() {
+          _video = result.files.first;
+        });
+        print('Picked video: ${_video?.name}, size: ${_video?.size}');
       }
     } catch (e) {
       Get.snackbar(
         'Lỗi',
-        'Không thể chọn video: $e',
+        'Vui lòng chọn video định dạng MP4',
         snackPosition: SnackPosition.BOTTOM,
       );
     }
@@ -393,6 +378,12 @@ class _CreateLessonState extends State<CreateLesson> {
           return;
         }
 
+        // Thêm loading indicator
+        Get.dialog(
+          Center(child: CircularProgressIndicator()),
+          barrierDismissible: false,
+        );
+
         final baiHoc = BaiHoc(
           tenBaiHoc: _nameController.text,
           moTa: _descController.text,
@@ -407,9 +398,12 @@ class _CreateLessonState extends State<CreateLesson> {
                 .uploadLesson(
           baiHoc,
           videoBytes: _video?.bytes,
-          videoName: _video?.name,
+          videoName: _generateSafeFileName(_video?.name ?? ''),
           documentFiles: _documents,
         );
+
+        // Đóng loading indicator
+        Get.back();
 
         if (result != null) {
           Get.snackbar(
@@ -443,5 +437,14 @@ class _CreateLessonState extends State<CreateLesson> {
         );
       }
     }
+  }
+
+  // Thêm hàm này để tạo tên file an toàn
+  String _generateSafeFileName(String originalName) {
+    // Loại bỏ các ký tự đặc biệt và khoảng trắng
+    final safeName =
+        originalName.replaceAll(RegExp(r'[^\w\s\-.]'), '').replaceAll(' ', '_');
+    // Thêm timestamp để tránh trùng tên
+    return '${DateTime.now().millisecondsSinceEpoch}_$safeName';
   }
 }

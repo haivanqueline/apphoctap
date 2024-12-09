@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
-import '../utils/screen_size.dart';
+import 'package:provider/provider.dart';
+import '../providers/credit_card_provider.dart';
+import '../models/credit_card.dart';
 
 class CardBottomSheet extends StatefulWidget {
   const CardBottomSheet({Key? key}) : super(key: key);
@@ -12,181 +13,348 @@ class CardBottomSheet extends StatefulWidget {
 }
 
 class _CardBottomSheetState extends State<CardBottomSheet> {
-  bool ischeaked = false;
+  final _formKey = GlobalKey<FormState>();
+
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _numberController = TextEditingController();
+  final TextEditingController _cvvController = TextEditingController();
+  final TextEditingController _expirationMonthController =
+      TextEditingController();
+  final TextEditingController _expirationYearController =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _numberController.dispose();
+    _cvvController.dispose();
+    _expirationMonthController.dispose();
+    _expirationYearController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    initializeScreenSize(context);
-
-    return Padding(
-      padding:  EdgeInsets.only(left: 15.w, right: 15.w),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-           SizedBox(height: 10.h),
-          Center(
-              child: Container(
+    return SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22.h)),
+        ),
+        padding: EdgeInsets.only(
+          left: 20.w,
+          right: 20.w,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 10.h),
+              Center(
+                child: Container(
                   height: 4.h,
                   width: 48.w,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.h),
-                      color: const Color(0XFF12121D)))),
-           SizedBox(height: 9.h),
-           Text(
-            "Add Card",
-            style: TextStyle(
-                fontSize: 18.sp,
-                fontFamily: 'Gilroy',
-                color: Color(0XFF000000)),
-          ),
-           SizedBox(height: 20.h),
-          card_name_field('Name On Card', 'assets/profileicon1st.png'),
-           SizedBox(height: 20.h),
-          card_name_field('Card Number', 'assets/numberbox.png'),
-           SizedBox(height: 20.h),
-          Row(
-            children: [
-              date_and_cvv_field('MM/YY'),
-               SizedBox(width: 20.w),
-              date_and_cvv_field('CVV')
-            ],
-          ),
-           SizedBox(height: 20.5.h),
-          save_card_cheakbox(),
-          SizedBox(height: 21.h),
-          add_button(),
-          SizedBox(height: 40.h,)
-
-
-      ]),
-    );
-  }
-
-  card_name_field(String s, String t) {
-    return Container(
-      height: 60.h,
-      width: double.infinity,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22.h),
-          boxShadow: [
-            BoxShadow(
-                color: const Color(0XFF23408F).withOpacity(0.14),
-                offset: const Offset(-4, 5),
-                blurRadius: 16.h),
-          ],
-          color: Colors.white),
-      child: Padding(
-        padding:  EdgeInsets.all(8.0.h),
-        child: TextFormField(
-
-          decoration: InputDecoration(
-              hintText: s,
-              contentPadding: EdgeInsets.only(top: 19.h,bottom: 14.h),
-              prefixIcon: Padding(
-                padding:  EdgeInsets.all(7.0.h),
-                child: Container(
-                 // color: Colors.red,
-                    height: 24.h,
-                    width: 24.h,
-                  child: Image(
-                    image: AssetImage(t), height: 24.h,
-                    width: 24.h,
+                    borderRadius: BorderRadius.circular(10.h),
+                    color: const Color(0XFF12121D),
                   ),
                 ),
               ),
-              border: InputBorder.none),
-          style:  TextStyle(
-              fontSize: 15.sp,
-              color: Color(0XFF6E758A),
-              fontFamily: 'Gilroy',
-              fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
-
-  date_and_cvv_field(String s) {
-    return Expanded(
-      child: Container(
-        height: 60.h,
-        width: double.infinity.w,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22.h),
-            boxShadow: [
-              BoxShadow(
-                  color: const Color(0XFF23408F).withOpacity(0.14),
-                  offset: const Offset(-4, 5),
-                  blurRadius: 16.h),
+              SizedBox(height: 20.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Add New Card",
+                    style: TextStyle(
+                      fontSize: 24.sp,
+                      fontFamily: 'Gilroy',
+                      fontWeight: FontWeight.w700,
+                      color: Color(0XFF000000),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: Icon(Icons.close, size: 24.sp),
+                  ),
+                ],
+              ),
+              SizedBox(height: 30.h),
+              // Card Number Field
+              _buildTextField(
+                controller: _numberController,
+                hint: "Card Number",
+                icon: "assets/numberbox.png",
+                keyboardType: TextInputType.number,
+                maxLength: 16,
+                validator: (value) {
+                  if (value?.isEmpty ?? true) return "Vui lòng nhập số thẻ";
+                  if (value!.length != 16) return "Số thẻ phải có 16 chữ số";
+                  return null;
+                },
+              ),
+              SizedBox(height: 20.h),
+              // Card Holder Name Field
+              _buildTextField(
+                controller: _nameController,
+                hint: "Card Holder Name",
+                icon: "assets/profileicon1st.png",
+                textCapitalization: TextCapitalization.words,
+                validator: (value) {
+                  if (value?.isEmpty ?? true) return "Vui lòng nhập tên";
+                  return null;
+                },
+              ),
+              SizedBox(height: 20.h),
+              // Expiration Date and CVV Row
+              Row(
+                children: [
+                  // Expiration Date Fields
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Expiration Date",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey[600],
+                            fontFamily: 'Gilroy',
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Row(
+                          children: [
+                            // Month Field
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _expirationMonthController,
+                                hint: "MM",
+                                keyboardType: TextInputType.number,
+                                maxLength: 2,
+                                textAlign: TextAlign.center,
+                                validator: (value) {
+                                  if (value?.isEmpty ?? true) return "MM";
+                                  int? month = int.tryParse(value!);
+                                  if (month == null ||
+                                      month < 1 ||
+                                      month > 12) {
+                                    return "Invalid";
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10.w),
+                              child: Text(
+                                "/",
+                                style: TextStyle(
+                                  fontSize: 20.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            // Year Field
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _expirationYearController,
+                                hint: "YY",
+                                keyboardType: TextInputType.number,
+                                maxLength: 2,
+                                textAlign: TextAlign.center,
+                                validator: (value) {
+                                  if (value?.isEmpty ?? true) return "YY";
+                                  int? year = int.tryParse(value!);
+                                  if (year == null) return "Invalid";
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 20.w),
+                  // CVV Field
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "CVV",
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.grey[600],
+                            fontFamily: 'Gilroy',
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        _buildTextField(
+                          controller: _cvvController,
+                          hint: "CVV",
+                          keyboardType: TextInputType.number,
+                          maxLength: 3,
+                          obscureText: true,
+                          textAlign: TextAlign.center,
+                          validator: (value) {
+                            if (value?.isEmpty ?? true) return "CVV";
+                            if (value!.length != 3) return "Invalid";
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 40.h),
+              _buildAddButton(context),
             ],
-            color: Colors.white),
-        child: Padding(
-          padding:  EdgeInsets.all(8.0.h),
-          child: TextFormField(
-            keyboardType: TextInputType.datetime,
-            decoration: InputDecoration(
-              hintText: s,
-              contentPadding: EdgeInsets.only(left: 18.w,top:18.h ,bottom: 14.h),
-              border: InputBorder.none,
-            ),
-            style:  TextStyle(
-                fontSize: 15.sp,
-                color: Color(0XFF6E758A),
-                fontFamily: 'Gilroy',
-                fontWeight: FontWeight.w600),
           ),
         ),
       ),
     );
   }
 
-  Widget save_card_cheakbox() {
-    return Row(
-      children: [
-        Checkbox(
-          value: ischeaked,
-          activeColor:const  Color(0XFF23408F),
-          side: const BorderSide(color: Color(0XFFDEDEDE)),
-
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.h)),
-          onChanged: (value) {
-            setState(() {
-              ischeaked = value!;
-            });
-          },
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    String? icon,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    int? maxLength,
+    bool obscureText = false,
+    TextAlign textAlign = TextAlign.start,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+  }) {
+    return Container(
+      height: 56.h,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.h),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0XFF23408F).withOpacity(0.08),
+            offset: const Offset(0, 4),
+            blurRadius: 8.h,
+          ),
+        ],
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: TextFormField(
+        controller: controller,
+        validator: validator,
+        keyboardType: keyboardType,
+        maxLength: maxLength,
+        obscureText: obscureText,
+        textAlign: textAlign,
+        textCapitalization: textCapitalization,
+        style: TextStyle(
+          fontSize: 16.sp,
+          fontFamily: 'Gilroy',
+          color: Colors.black87,
         ),
-        SizedBox(width: 10.w),
-         Text(
-          "Save Card",
-          style: TextStyle(
-              fontFamily: 'Gilroy',
-              color: Color(0XFF000000),
-              fontSize: 15.sp),
-        )
-      ],
+        decoration: InputDecoration(
+          hintText: hint,
+          counterText: "",
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.w),
+          prefixIcon: icon != null
+              ? Padding(
+                  padding: EdgeInsets.all(16.h),
+                  child: Image.asset(icon, height: 24.h, width: 24.w),
+                )
+              : null,
+          border: InputBorder.none,
+          hintStyle: TextStyle(
+            color: Colors.grey[400],
+            fontSize: 16.sp,
+            fontFamily: 'Gilroy',
+          ),
+        ),
+      ),
     );
   }
 
-  Widget add_button() {
-    return GestureDetector(
-      onTap: () {
-        Get.back();
+  Widget _buildAddButton(BuildContext context) {
+    return Consumer<CreditCardProvider>(
+      builder: (context, provider, child) {
+        return GestureDetector(
+          onTap: provider.isLoading
+              ? null
+              : () async {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    final newCard = CreditCard(
+                      userId: 1,
+                      cardNumber: _numberController.text.trim(),
+                      cardHolderName: _nameController.text.trim(),
+                      cvv: _cvvController.text.trim(),
+                      expirationMonth: _expirationMonthController.text.trim(),
+                      expirationYear:
+                          "20${_expirationYearController.text.trim()}",
+                    );
+
+                    try {
+                      await provider.addCreditCard(newCard);
+                      Get.back();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Thêm thẻ thành công'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Lỗi: ${e.toString()}'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+          child: Container(
+            height: 56.h,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16.h),
+              color: const Color(0XFF23408F),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0XFF23408F).withOpacity(0.25),
+                  offset: const Offset(0, 4),
+                  blurRadius: 12.h,
+                ),
+              ],
+            ),
+            child: Center(
+              child: provider.isLoading
+                  ? SizedBox(
+                      height: 24.h,
+                      width: 24.h,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                  : Text(
+                      "Add Card",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w700,
+                        fontFamily: 'Gilroy',
+                      ),
+                    ),
+            ),
+          ),
+        );
       },
-      child: Container(
-        height: 56.h,
-        width: 374.w,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20.h), color:  ischeaked?const Color(0XFF23408F):Colors.grey,
-        ),
-        child:  Center(
-          child: Text("Add",
-              style: TextStyle(
-                  color: Color(0XFFFFFFFF),
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'Gilroy')),
-        ),
-      ),
     );
   }
 }

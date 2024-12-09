@@ -37,8 +37,8 @@ final String api_feedback_status = '$base/feedbacks'; // Base URL cho update sta
 
 // Credit Card APIs
 final String api_credit_cards = '$base/credit-cards';
-final String api_credit_cards_set_default = '$base/credit-cards'; // + /{id}/set-default
-final String api_credit_cards_delete = '$base/credit-cards'; // + /{id}
+final String api_add_credit_card = '$base/credit-cards';
+final String api_delete_credit_card = '$base/credit-cards'; // + /{id}
 
 // Global Variables
 String token = '';

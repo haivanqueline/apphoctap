@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:learn_megnagmet/splash/splash_screen.dart';
 import 'package:learn_megnagmet/providers/learning_provider.dart';
 import 'package:learn_megnagmet/repository/user_repository.dart';
+import 'providers/credit_card_provider.dart';
 
 void main() {
   runApp(
@@ -16,6 +17,9 @@ void main() {
           ),
           provider.Provider<UserRepository>(
             create: (_) => UserRepository(),
+          ),
+          provider.ChangeNotifierProvider<CreditCardProvider>(
+            create: (_) => CreditCardProvider(),
           ),
         ],
         child: const MyApp(),

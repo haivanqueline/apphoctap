@@ -77,24 +77,35 @@ class _CardBottomSheetState extends State<CardBottomSheet> {
     );
   }
 
-  Widget cardField(String hint, IconData icon, TextEditingController controller,
-      {bool isNumber = false}) {
-    return TextField(
-      controller: controller,
-      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-      decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey[600]),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.h),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.h),
-          borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+  date_and_cvv_field(String s) {
+    return Expanded(
+      child: Container(
+        height: 60.h,
+        width: double.infinity.w,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22.h),
+            boxShadow: [
+              BoxShadow(
+                  color: const Color(0XFF23408F).withOpacity(0.14),
+                  offset: const Offset(-4, 5),
+                  blurRadius: 16.h),
+            ],
+            color: Colors.white),
+        child: Padding(
+          padding:  EdgeInsets.all(8.0.h),
+          child: TextFormField(
+            keyboardType: TextInputType.datetime,
+            decoration: InputDecoration(
+              hintText: s,
+              contentPadding: EdgeInsets.only(left: 18.w,top:18.h ,bottom: 14.h),
+              border: InputBorder.none,
+            ),
+            style:  TextStyle(
+                fontSize: 15.sp,
+                color: Color(0XFF6E758A),
+                fontFamily: 'Gilroy',
+                fontWeight: FontWeight.w600),
+          ),
         ),
       ),
     );

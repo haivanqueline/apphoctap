@@ -583,8 +583,6 @@ class Utils {
           title: 'Help Center', icon: 'assets/prorfileoptionicon5th.png'),
       ProfileOption(
           title: 'Privacy Policy', icon: 'assets/prorfileoptionicon6th.png'),
-      ProfileOption(
-          title: 'Feedback', icon: 'assets/prorfileoptionicon7th.png'),
       ProfileOption(title: 'Rate Us', icon: 'assets/prorfileoptionicon8th.png'),
     ];
   }

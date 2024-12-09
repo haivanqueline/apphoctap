@@ -15,7 +15,6 @@ import 'package:learn_megnagmet/profile/my_project.dart';
 import 'package:learn_megnagmet/profile/privacy_policy.dart';
 import 'package:learn_megnagmet/profile/rate_us.dart';
 import 'package:learn_megnagmet/profile/saved_cource.dart';
-import 'package:learn_megnagmet/utils/slider_page_data_model.dart';
 import 'package:provider/provider.dart';
 
 import '../controller/controller.dart';
@@ -48,7 +47,18 @@ class _MyProfileState extends State<MyProfile> {
 
   MyProfileController myProfileController = Get.put(MyProfileController());
   List<ProfileOption> profileoption = [
-    ...Utils.getProfileOption(),
+    ProfileOption(
+      title: "Privacy Policy",
+      icon: "assets/prorfileoptionicon5th.png",
+    ),
+    ProfileOption(
+      title: "Feedback",
+      icon: "assets/prorfileoptionicon6th.png",
+    ),
+    ProfileOption(
+      title: "Rate Us",
+      icon: "assets/prorfileoptionicon7th.png",
+    ),
     ProfileOption(
       title: "Quản lý khóa học",
       icon: "assets/designIcon2nd.png",
@@ -199,17 +209,26 @@ class _MyProfileState extends State<MyProfile> {
                               child: GestureDetector(
                                 onTap: () {
                                   switch (profileoption[index].title) {
-                                    case "Khóa học đã lưu":
-                                      Get.to(() => SavedCourse());
+                                    case "Privacy Policy":
+                                      Get.to(() => const PrivacyPolicy());
+                                      break;
+                                    case "Feedback":
+                                      Get.to(() => const FeedBack());
+                                      break;
+                                    case "Rate Us":
+                                      Get.to(() => const RateUs());
                                       break;
                                     case "Quản lý khóa học":
-                                      Get.to(() => ManageCourses());
+                                      Get.to(() => const ManageCourses());
                                       break;
                                     case "Tạo khóa học":
-                                      Get.to(() => CreateCourse());
+                                      Get.to(() => const CreateCourse());
                                       break;
                                     case "Tạo bài học":
                                       _showSelectCourseDialog();
+                                      break;
+                                    case "Khóa học đã lưu":
+                                      Get.to(() => const SavedCourse());
                                       break;
                                     default:
                                       // Xử lý các trường hợp khác như cũ

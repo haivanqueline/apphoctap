@@ -30,6 +30,10 @@ final String api_delete_lesson = '$base/delete-lesson';
 final String api_save_course = '$base/save-course';
 final String api_get_saved_courses = '$base/saved-courses';
 
+// Feedback APIs
+final String api_feedbacks = '$base/feedbacks';
+final String api_feedback_status = '$base/feedbacks'; // Base URL cho update status và delete
+
 // Global Variables
 String token = '';
 Profile initialProfile = Profile(

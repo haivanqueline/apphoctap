@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../providers/feedback_provider.dart';
-import '../models/feedback_model.dart';
 
 class FeedbackList extends ConsumerWidget {
   const FeedbackList({Key? key}) : super(key: key);

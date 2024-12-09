@@ -29,10 +29,16 @@ final String api_delete_course = '$base/delete-course';
 final String api_delete_lesson = '$base/delete-lesson';
 final String api_save_course = '$base/save-course';
 final String api_get_saved_courses = '$base/saved-courses';
+final String api_search_courses = '$base/search-courses';
 
 // Feedback APIs
 final String api_feedbacks = '$base/feedbacks';
 final String api_feedback_status = '$base/feedbacks'; // Base URL cho update status và delete
+
+// Credit Card APIs
+final String api_credit_cards = '$base/credit-cards';
+final String api_credit_cards_set_default = '$base/credit-cards'; // + /{id}/set-default
+final String api_credit_cards_delete = '$base/credit-cards'; // + /{id}
 
 // Global Variables
 String token = '';

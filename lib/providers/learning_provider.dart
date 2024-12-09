@@ -15,6 +15,7 @@ class LearningProvider with ChangeNotifier {
   String? _error;
   bool _isFirstLoad = true;
   List<KhoaHoc> _savedCourses = [];
+  List<KhoaHoc> _searchResults = [];
 
   bool get isLoading => _isLoading;
   bool get isLoadingLessons => _isLoadingLessons;
@@ -22,12 +23,9 @@ class LearningProvider with ChangeNotifier {
   List<BaiHoc> get lessons => _lessons;
   String? get error => _error;
   List<KhoaHoc> get savedCourses => _savedCourses;
+  List<KhoaHoc> get searchResults => _searchResults;
 
   Future<void> fetchMyCourses() async {
-    if (!_isFirstLoad && _myCourses.isNotEmpty) {
-      return;
-    }
-
     try {
       _isLoading = true;
       _error = null;
@@ -42,16 +40,19 @@ class LearningProvider with ChangeNotifier {
         if (responseData['status'] == true) {
           if (responseData['data'] != null) {
             final List<dynamic> coursesData = responseData['data'];
-            _myCourses =
-                coursesData.map((json) => KhoaHoc.fromJson(json)).toList();
+            _myCourses = coursesData.map((json) {
+              if (json['created_by_name'] == null && json['user'] != null) {
+                json['created_by_name'] = json['user']['full_name'] ?? 'Không xác định';
+              }
+              return KhoaHoc.fromJson(json);
+            }).toList();
             _isFirstLoad = false;
             print('Loaded ${_myCourses.length} courses');
           } else {
             _myCourses = [];
           }
         } else {
-          _error =
-              responseData['message'] ?? 'Không thể tải danh sách khóa học';
+          _error = responseData['message'] ?? 'Không thể tải danh sách khóa học';
         }
       } else {
         _error = 'Không thể tải danh sách khóa học';
@@ -363,5 +364,49 @@ class LearningProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> searchCourses({
+    String? keyword,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+  }) async {
+    try {
+      _isLoading = true;
+      _error = null;
+      notifyListeners();
+
+      final response = await _learningRepository.searchCourses(
+        keyword: keyword,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        sortBy: sortBy,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData['status'] == true && responseData['data'] != null) {
+          final List<dynamic> coursesData = responseData['data'];
+          _searchResults = coursesData.map((json) => KhoaHoc.fromJson(json)).toList();
+        } else {
+          _searchResults = [];
+        }
+      } else {
+        _error = 'Không thể tìm kiếm khóa học';
+      }
+    } catch (e) {
+      print('Error searching courses: $e');
+      _error = 'Lỗi khi tìm kiếm khóa học: $e';
+      _searchResults = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void clearSearchResults() {
+    _searchResults = [];
+    notifyListeners();
   }
 }

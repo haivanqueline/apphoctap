@@ -7,6 +7,7 @@ class KhoaHoc {
   final String? thumbnail;
   final String trangThai;
   final int? createdBy;
+  final String? createdByName;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -19,6 +20,7 @@ class KhoaHoc {
     this.thumbnail,
     this.trangThai = 'active',
     this.createdBy,
+    this.createdByName,
     this.createdAt,
     this.updatedAt,
   });
@@ -33,6 +35,7 @@ class KhoaHoc {
       thumbnail: json['thumbnail'],
       trangThai: json['trang_thai'] ?? 'active',
       createdBy: json['created_by'],
+      createdByName: json['created_by_name'],
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
       updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at']) : null,
     );
@@ -48,6 +51,7 @@ class KhoaHoc {
       'thumbnail': thumbnail,
       'trang_thai': trangThai,
       'created_by': createdBy,
+      'created_by_name': createdByName,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };

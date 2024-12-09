@@ -1,203 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FilterSheet extends StatefulWidget {
-  const FilterSheet({Key? key}) : super(key: key);
+  final Function(double? minPrice, double? maxPrice, String? sortBy)
+      onApplyFilter;
+
+  const FilterSheet({
+    Key? key,
+    required this.onApplyFilter,
+  }) : super(key: key);
 
   @override
   State<FilterSheet> createState() => _FilterSheetState();
 }
 
 class _FilterSheetState extends State<FilterSheet> {
-  RangeValues _currentRangeValues = const RangeValues(0, 100);
-  bool activevalue = false;
-  List<String> categoryList = [
-    "UI/UX",
-    "Coding",
-    "Gamne",
-    "3D Design",
-    "Illustrater",
-    "Marketing",
-    "Business"
-  ];
-  List<String> selectedCategory = [];
-  double slidervalue = 0;
-  double rate = 0;
+  double? _minPrice;
+  double? _maxPrice;
+  String? _selectedSortBy;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 15),
+    return Container(
+      padding: EdgeInsets.all(20.w),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 20),
-          const Text(
-            "Filter",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Price range",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                  "\$${_currentRangeValues.start.round().toString()}-\$${_currentRangeValues.end.round().toString()}",
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold))
-            ],
-          ),
-          RangeSlider(
-            activeColor: Color(0XFF23408F),
-            values: _currentRangeValues,
-            min: 0,
-            max: 100,
-            divisions: 10,
-            labels: RangeLabels(
-              _currentRangeValues.start.round().toString(),
-              _currentRangeValues.end.round().toString(),
+          Text(
+            'Lọc kết quả',
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
             ),
-            onChanged: (RangeValues values) {
+          ),
+          SizedBox(height: 20.h),
+
+          // Giá tối thiểu
+          TextFormField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Giá tối thiểu',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
               setState(() {
-                _currentRangeValues = values;
+                _minPrice = double.tryParse(value);
               });
             },
           ),
-          const SizedBox(height: 10),
-          const Text(
-            "Ratings",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          SizedBox(height: 16.h),
+
+          // Giá tối đa
+          TextFormField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Giá tối đa',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _maxPrice = double.tryParse(value);
+              });
+            },
           ),
-          Row(
-            children: [
-              RatingBar.builder(
-                minRating: 1,
-                direction: Axis.horizontal,
-                allowHalfRating: true,
-                itemCount: 5,
-                itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
-                itemBuilder: (context, _) => const Icon(
-                  Icons.star_rounded,
-                  color: Colors.amber,
-                ),
-                onRatingUpdate: (rating) {
-                  setState(() {
-                    rate = rating;
-                  });
-                },
-              ),
-              const SizedBox(width: 20),
-              Text(
-                "${rate}",
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+          SizedBox(height: 16.h),
+
+          // Sắp xếp theo
+          DropdownButtonFormField<String>(
+            value: _selectedSortBy,
+            decoration: InputDecoration(
+              labelText: 'Sắp xếp theo',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              DropdownMenuItem(value: 'price_asc', child: Text('Giá tăng dần')),
+              DropdownMenuItem(
+                  value: 'price_desc', child: Text('Giá giảm dần')),
+              DropdownMenuItem(value: 'newest', child: Text('Mới nhất')),
+              DropdownMenuItem(value: 'oldest', child: Text('Cũ nhất')),
             ],
+            onChanged: (value) {
+              setState(() {
+                _selectedSortBy = value;
+              });
+            },
           ),
-          Wrap(
-            alignment: WrapAlignment.start,
-            children: [
-              for (final i
-                  in List.generate(categoryList.length, (index) => index))
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Wrap(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            if (!selectedCategory.contains(categoryList[i])) {
-                              selectedCategory.add(categoryList[i]);
-                            } else {
-                              selectedCategory.remove(categoryList[i]);
-                            }
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 6, horizontal: 13),
-                          decoration: BoxDecoration(
-                            color: selectedCategory.contains(categoryList[i])
-                                ? Color(0XFFE5ECFF)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(26),
-                            border: Border.all(
-                                color:
-                                    selectedCategory.contains(categoryList[i])
-                                        ? Color(0XFF23408F)
-                                        : Color(0XFF6E758A),
-                                width: 1),
-                          ),
-                          child: Text(
-                            categoryList[i],
-                            style: selectedCategory.contains(categoryList[i])
-                                ? const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0XFF23408F),
-                                    fontFamily: 'Gilroy')
-                                : const TextStyle(
-                                    color: Color(0XFF6E758A),
-                                    fontFamily: 'Gilroy'),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-            ],
+          SizedBox(height: 20.h),
+
+          // Nút áp dụng
+          ElevatedButton(
+            onPressed: () {
+              widget.onApplyFilter(_minPrice, _maxPrice, _selectedSortBy);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0XFF23408F),
+              minimumSize: Size(double.infinity, 50.h),
+            ),
+            child: Text('Áp dụng'),
           ),
-          const SizedBox(
-            height: 30,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              GestureDetector(
-                child: Container(
-                  height: 56,
-                  width: 177,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
-                    color: Color(0XFF23408F),
-                  ),
-                  child: const Center(
-                      child: Text(
-                    "Apply",
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Color(0XFFFFFFFF),
-                        fontFamily: 'Gilroy',
-                        fontWeight: FontWeight.bold),
-                  )),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  height: 56,
-                  width: 177,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Color(0XFF23408F),
-                    ),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: const Center(
-                      child: Text(
-                    "Clear All",
-                    style: TextStyle(
-                        fontSize: 18,
-                        color: Color(0XFF23408F),
-                        fontFamily: 'Gilroy',
-                        fontWeight: FontWeight.bold),
-                  )),
-                ),
-              )
-            ],
-          )
         ],
       ),
     );

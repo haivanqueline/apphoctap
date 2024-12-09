@@ -48,6 +48,10 @@ class _MyProfileState extends State<MyProfile> {
   MyProfileController myProfileController = Get.put(MyProfileController());
   List<ProfileOption> profileoption = [
     ProfileOption(
+      title: "My Card",
+      icon: "assets/prorfileoptionicon4th.png",
+    ),
+    ProfileOption(
       title: "Privacy Policy",
       icon: "assets/prorfileoptionicon5th.png",
     ),
@@ -209,6 +213,9 @@ class _MyProfileState extends State<MyProfile> {
                               child: GestureDetector(
                                 onTap: () {
                                   switch (profileoption[index].title) {
+                                    case "My Card":
+                                      Get.to(() => const CertificatePayment());
+                                      break;
                                     case "Privacy Policy":
                                       Get.to(() => const PrivacyPolicy());
                                       break;

@@ -91,6 +91,15 @@ class _ManageCoursesState extends State<ManageCourses> {
                                     fontFamily: 'Gilroy',
                                   ),
                                 ),
+                                SizedBox(height: 5.h),
+                                Text(
+                                  'Người tạo: ${course.createdByName ?? 'Không xác định'}',
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontFamily: 'Gilroy',
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
                                 SizedBox(height: 10.h),
                                 Row(
                                   mainAxisAlignment:

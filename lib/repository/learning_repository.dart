@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import '../constant/apilist.dart';
@@ -216,5 +215,34 @@ class LearningRepository {
       rethrow;
     }
   }
-  
+
+  Future<http.Response> searchCourses({
+    String? keyword,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+  }) async {
+    try {
+      final queryParams = {
+        if (keyword != null && keyword.isNotEmpty) 'keyword': keyword,
+        if (minPrice != null) 'min_price': minPrice.toString(),
+        if (maxPrice != null) 'max_price': maxPrice.toString(),
+        if (sortBy != null) 'sort_by': sortBy,
+      };
+
+      final uri = Uri.parse(api_search_courses).replace(queryParameters: queryParams);
+      
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response;
+    } catch (e) {
+      print('Repository Error: $e');
+      rethrow;
+    }
+  }
 }
